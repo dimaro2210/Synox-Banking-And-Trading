@@ -1,1 +1,0 @@
-import"./index.es-CLLT_Pjb.js";import"./index.es-SAGPgUtf.js";import"./__vite-browser-external-CY0FFSRG.js";import{d as e,f as t,l as n,m as r,p as i,u as a}from"./index-BrJLkX6c.js";export{a as EthereumProvider,r as OPTIONAL_EVENTS,e as OPTIONAL_METHODS,t as REQUIRED_EVENTS,i as REQUIRED_METHODS,n as default};
