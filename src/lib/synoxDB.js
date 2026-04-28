@@ -143,53 +143,74 @@ export const SynoxDB = {
   // ─────────────────────────────────────────────────────────
   // OTP — reads otp_code from Supabase users table
   // ─────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────
+  // OTP — Generates a fresh code and updates Supabase to trigger email
+  // ─────────────────────────────────────────────────────────
   sendOTPEmail: async (email) => {
-    // Fetch the otp_code set by admin in Supabase
-    const { data: users, error } = await supabase
+    const freshOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    const { data: user, error: fetchError } = await supabase
       .from('users')
-      .select('id, otp_code')
-      .ilike('email', email);
+      .select('id')
+      .ilike('email', email)
+      .single();
 
-    if (error || !users || users.length === 0) {
-      return { success: false, error: 'User not found' };
+    if (fetchError || !user) return { success: false, error: 'User not found' };
+
+    // Update the database with the fresh OTP. 
+    // This triggers the user's Supabase email template/webhook.
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ otp_code: freshOtp })
+      .eq('id', user.id);
+
+    if (updateError) {
+      console.error('Failed to trigger OTP email:', updateError);
+      return { success: false, error: 'Failed to send OTP. Please try again later.' };
     }
 
-    const user = users[0];
-    if (!user.otp_code) {
-      return { success: false, error: 'No OTP code has been set for this account. Please contact support.' };
-    }
-
-    // Store in sessionStorage so verifyOTPCode can check it
-    sessionStorage.setItem('current_otp', user.otp_code);
+    // Also store in sessionStorage for the verify step
+    sessionStorage.setItem('current_otp', freshOtp);
     sessionStorage.setItem('current_otp_email', email);
     return { success: true };
   },
 
   verifyOTPCode: async (email, code) => {
-    // Verify against the otp_code stored in Supabase
-    const { data: users, error } = await supabase
+    const { data: user, error } = await supabase
       .from('users')
-      .select('id, otp_code')
-      .ilike('email', email);
+      .select('otp_code')
+      .ilike('email', email)
+      .single();
 
-    if (error || !users || users.length === 0) {
-      return { success: false, error: 'User not found' };
-    }
-
-    const user = users[0];
-    if (!user.otp_code) {
-      return { success: false, error: 'No OTP code has been set for this account. Please contact support.' };
-    }
-
-    if (code.trim() === user.otp_code.trim()) {
+    if (error || !user) return { success: false, error: 'User not found' };
+    
+    if (code.trim() === (user.otp_code || '').trim()) {
       return { success: true, session: { user: { email } } };
     }
     return { success: false, error: 'Invalid OTP code. Please try again.' };
   },
 
   // ─────────────────────────────────────────────────────────
-  // COT — reads cot_code from Supabase users table
+  // COT — Generates a fresh code and updates Supabase to trigger email
   // ─────────────────────────────────────────────────────────
+  sendCOTEmail: async (userId) => {
+    const freshCot = Math.floor(1000 + Math.random() * 9000).toString();
+    
+    // Update the database with the fresh COT.
+    // This triggers the user's Supabase email template/webhook.
+    const { error } = await supabase
+      .from('users')
+      .update({ cot_code: freshCot })
+      .eq('id', userId);
+
+    if (error) {
+      console.error('Failed to trigger COT email:', error);
+      return { success: false, error: 'Failed to send verification code.' };
+    }
+
+    return { success: true };
+  },
+
   verifyCOTCode: async (userId, code) => {
     const { data: user, error } = await supabase
       .from('users')
@@ -197,18 +218,12 @@ export const SynoxDB = {
       .eq('id', userId)
       .single();
 
-    if (error || !user) {
-      return { success: false, error: 'User not found' };
-    }
+    if (error || !user) return { success: false, error: 'User not found' };
 
-    if (!user.cot_code) {
-      return { success: false, error: 'No COT code has been set for this account. Please contact support.' };
-    }
-
-    if (code.trim() === user.cot_code.trim()) {
+    if (code.trim() === (user.cot_code || '').trim()) {
       return { success: true };
     }
-    return { success: false, error: 'Invalid COT code. Please check your records and try again.' };
+    return { success: false, error: 'Invalid COT code. Please check your email and try again.' };
   },
 
   // ─────────────────────────────────────────────────────────

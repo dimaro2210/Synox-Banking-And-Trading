@@ -122,6 +122,16 @@ const TransfersPage = () => {
   };
 
 
+  const handleProceedToVerify = async () => {
+    const userId = sessionStorage.getItem('synox_user_id');
+    const result = await SynoxDB.sendCOTEmail(userId);
+    if (result.success) {
+      setStep(3);
+    } else {
+      alert(result.error || 'Failed to send COT code. Please try again.');
+    }
+  };
+
   const resetFlow = () => {
     setStep(1);
     setCotCode('');
@@ -387,7 +397,7 @@ const TransfersPage = () => {
                     </div>
 
                     <div className="d-flex flex-column gap-3">
-                      <button className="btn btn-lg w-100 py-3 rounded-4 fw-bold shadow-sm" style={{ background: BRAND_BLUE, color: '#fff' }} onClick={() => setStep(3)}>
+                      <button className="btn btn-lg w-100 py-3 rounded-4 fw-bold shadow-sm" style={{ background: BRAND_BLUE, color: '#fff' }} onClick={handleProceedToVerify}>
                         Proceed to Verification <i className="fas fa-lock ms-2"></i>
                       </button>
                       <button className="btn btn-link text-muted fw-bold text-decoration-none" onClick={() => setStep(1)}>
@@ -396,6 +406,7 @@ const TransfersPage = () => {
                     </div>
                   </div>
                 )}
+
 
                 {/* ═══════════ STEP 3: COT CODE ═══════════ */}
                 {step === 3 && (
@@ -504,8 +515,7 @@ const TransfersPage = () => {
                     </div>
                   </div>
                 )}
-              </div>
-            </div>
+
 
             {/* Security Badge */}
             <div className="text-center mt-4 mt-md-5">
@@ -524,6 +534,7 @@ const TransfersPage = () => {
           </div>
         </div>
       </div>
+
 
       <style>{`
         .custom-number-input::-webkit-outer-spin-button,
