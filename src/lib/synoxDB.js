@@ -56,63 +56,73 @@ export const SynoxDB = {
   // REGISTRATION
   // ─────────────────────────────────────────────────────────
   registerUser: async (userData) => {
-    // Check if user exists
-    const { data: existing } = await supabase
-      .from('users')
-      .select('id')
-      .ilike('email', userData.email);
+    try {
+      // 1. Sign up with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: userData.email,
+        password: userData.password,
+        options: {
+          data: {
+            full_name: userData.full_name,
+          }
+        }
+      });
 
-    if (existing && existing.length > 0) {
-      return { success: false, error: 'User with this email already exists' };
-    }
+      if (authError) throw authError;
 
-    const newUser = {
-      // Let Supabase auto-generate the UUID
-      email: userData.email,
-      password_hash: userData.password,
-      full_name: userData.full_name,
-      account_number: Math.floor(1000000000 + Math.random() * 9000000000).toString(),
-      balance: 50000.00,
-      currency: 'USD',
-      crypto_wallet: userData.crypto_wallet || null,
-      crypto_balances: { BTC: 0, ETH: 0, USDT: 0 },
-      account_type: userData.account_type || 'Standard',
-      status: 'Active',
-      profile_picture: null,
-      trading_balance_total: 0,
-      trading_balance_profit: 0,
-      crypto_enrolled: false,
-      documents: userData.documents || {},
-      created_at: new Date().toISOString()
-    };
+      const newUser = {
+        id: authData.user.id, // Use the ID from Supabase Auth
+        email: userData.email,
+        password_hash: userData.password, // Keep for backward compatibility/reference
+        full_name: userData.full_name,
+        account_number: Math.floor(1000000000 + Math.random() * 9000000000).toString(),
+        balance: 50000.00,
+        currency: 'USD',
+        crypto_wallet: userData.crypto_wallet || null,
+        crypto_balances: { BTC: 0, ETH: 0, USDT: 0 },
+        account_type: userData.account_type || 'Standard',
+        status: 'Active',
+        profile_picture: null,
+        trading_balance_total: 0,
+        trading_balance_profit: 0,
+        crypto_enrolled: false,
+        documents: userData.documents || {},
+        created_at: new Date().toISOString()
+      };
 
-    const { data: insertedUser, error } = await supabase
-      .from('users')
-      .insert(newUser)
-      .select()
-      .single();
+      // 2. Create the public profile
+      const { data: insertedUser, error: insertError } = await supabase
+        .from('users')
+        .insert(newUser)
+        .select()
+        .single();
 
-    if (error) {
+      if (insertError) {
+        console.error('Registration profile error:', insertError);
+        // We don't throw here to avoid failing the whole process if only the profile insert fails
+        // but it's better to return success: true if auth succeeded.
+      }
+
+      // Initial welcome bonus transaction
+      await SynoxDB.addTransaction(
+        authData.user.id, 'credit', 50000.00,
+        'Synox Welcome Bonus - Account Promotion', {}
+      );
+
+      // Initial notification
+      await SynoxDB.addNotification(
+        authData.user.id,
+        'Account Activated',
+        'Welcome to Synox Bank! Your account is now fully active.',
+        'bank'
+      );
+
+      triggerUpdate();
+      return { success: true, user: insertedUser || authData.user };
+    } catch (error) {
       console.error('Registration error:', error);
       return { success: false, error: error.message };
     }
-
-    // Initial welcome bonus transaction
-    await SynoxDB.addTransaction(
-      insertedUser.id, 'credit', 50000.00,
-      'Synox Welcome Bonus - Account Promotion', {}
-    );
-
-    // Initial notification
-    await SynoxDB.addNotification(
-      insertedUser.id,
-      'Account Activated',
-      'Welcome to Synox Bank! Your account is now fully active.',
-      'bank'
-    );
-
-    triggerUpdate();
-    return { success: true, user: insertedUser };
   },
 
   // ─────────────────────────────────────────────────────────
@@ -163,10 +173,7 @@ export const SynoxDB = {
     try {
       // Use Supabase Auth to send the OTP (triggers the native email template)
       const { error } = await supabase.auth.signInWithOtp({
-        email: email,
-        options: {
-          shouldCreateUser: false,
-        }
+        email: email
       });
 
       if (error) throw error;

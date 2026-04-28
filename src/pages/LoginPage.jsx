@@ -167,39 +167,39 @@ const LoginPage = () => {
                 </form>
               </div>
             ) : (
-              <div id="otp-form-container">
-                <form id="otpForm" onSubmit={handleVerifyOTP}>
-                  <div className="alert alert-info small" style={{
-                    backgroundColor: 'rgba(0, 45, 114, 0.1)',
-                    border: '1px solid rgba(0, 45, 114, 0.2)',
-                    color: '#002d72'
-                  }}>
-                    <i className="fas fa-envelope me-"></i>A One-Time Password (OTP) has been sent to:<br />
-                    <strong id="otp-email-display">{userData?.email}</strong>
-                  </div>
-                  <div className="form-group form-floating mt-4">
-                    <input
-                      type="text"
-                      className="form-control text-center"
-                      id="otpInput"
-                      placeholder=" "
-                      maxLength="6"
-                      style={{ letterSpacing: '5px', fontWeight: 700, fontSize: '1.2rem' }}
-                      required
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                    />
-                    <label className="floating-label" htmlFor="otpInput" style={{ left: '50%', transform: 'translateX(-50%)' }}>
-                      Enter 6-Digit Code
-                    </label>
-                  </div>
+                  <div id="otp-form-container">
+                    <form id="otpForm" onSubmit={handleVerifyOTP}>
+                      <div className="alert alert-info small" style={{
+                        backgroundColor: 'rgba(0, 45, 114, 0.1)',
+                        border: '1px solid rgba(0, 45, 114, 0.2)',
+                        color: '#002d72'
+                      }}>
+                        <i className="fas fa-envelope me-2"></i>A One-Time Password (OTP) has been sent to:<br />
+                        <strong id="otp-email-display">{userData?.email}</strong>
+                      </div>
+                      <div className="form-group form-floating mt-4">
+                        <input
+                          type="text"
+                          className="form-control text-center"
+                          id="otpInput"
+                          placeholder=" "
+                          style={{ letterSpacing: '4px', fontWeight: 700, fontSize: '1.5rem' }}
+                          required
+                          value={otp}
+                          onChange={(e) => setOtp(e.target.value)}
+                          autoFocus
+                        />
+                        <label className="floating-label" htmlFor="otpInput" style={{ left: '50%', transform: 'translateX(-50%)' }}>
+                          Enter Verification Code
+                        </label>
+                      </div>
 
-                  {error && <div className="error-message show">{error}</div>}
+                      {error && <div className="error-message show">{error}</div>}
 
-                  <button type="submit" className={`btn-premium mt-4 ${loading ? 'loading' : ''}`} disabled={loading}>
-                    <span>Verify Identity</span>
-                    <div className="loading-spinner"></div>
-                  </button>
+                      <button type="submit" className={`btn-premium mt-4 ${loading ? 'loading' : ''}`} disabled={loading || !otp}>
+                        <span>Verify Identity</span>
+                        <div className="loading-spinner"></div>
+                      </button>
 
                   <div className="text-center mt-3">
                     <a href="#" className="small text-primary" onClick={(e) => { e.preventDefault(); resendOTP(); }} style={{ color: '#9e7a2e', fontWeight: 600 }}>
