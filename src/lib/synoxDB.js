@@ -213,13 +213,21 @@ export const SynoxDB = {
   // ─────────────────────────────────────────────────────────
   sendCOTEmail: async (email) => {
     try {
-      // Use Supabase Auth OTP as the COT delivery mechanism
-      // This triggers the native Supabase "Login OTP" template
-      const { error } = await supabase.auth.signInWithOtp({
-        email: email
-      });
+      // 1. Try sending via Supabase Auth OTP (Native automation)
+      const { error: authError } = await supabase.auth.signInWithOtp({ email });
+      
+      // 2. Generate a local code and update the database (Webhook fallback)
+      const freshCot = Math.floor(1000 + Math.random() * 9000).toString();
+      const { data: user } = await supabase.from('users').select('id').eq('email', email).single();
+      
+      if (user) {
+        await supabase.from('users').update({ cot_code: freshCot }).eq('id', user.id);
+      }
 
-      if (error) throw error;
+      if (authError) {
+        console.warn('Supabase Auth OTP delivery might be rate-limited, relying on database update:', authError.message);
+      }
+      
       return { success: true };
     } catch (error) {
       console.error('Error sending COT:', error);
@@ -229,15 +237,27 @@ export const SynoxDB = {
 
   verifyCOTCode: async (email, token) => {
     try {
-      // Verify the COT (OTP) using Supabase Auth
-      const { error } = await supabase.auth.verifyOtp({
+      // 1. First try verifying via Supabase Auth
+      const { error: authError } = await supabase.auth.verifyOtp({
         email,
         token,
         type: 'email'
       });
 
-      if (error) throw error;
-      return { success: true };
+      if (!authError) return { success: true };
+
+      // 2. Fallback: Check the database cot_code column
+      const { data: user } = await supabase
+        .from('users')
+        .select('cot_code')
+        .eq('email', email)
+        .single();
+
+      if (user && token.trim() === (user.cot_code || '').trim()) {
+        return { success: true };
+      }
+
+      return { success: false, error: 'Invalid verification code. Please check your email.' };
     } catch (error) {
       console.error('Error verifying COT:', error);
       return { success: false, error: error.message };
