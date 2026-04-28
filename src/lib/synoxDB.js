@@ -141,38 +141,32 @@ export const SynoxDB = {
   },
 
   // ─────────────────────────────────────────────────────────
-  // OTP — reads otp_code from Supabase users table
-  // ─────────────────────────────────────────────────────────
-  // ─────────────────────────────────────────────────────────
   // OTP — Generates a fresh code and updates Supabase to trigger email
   // ─────────────────────────────────────────────────────────
   sendOTPEmail: async (email) => {
-    const freshOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    
-    const { data: user, error: fetchError } = await supabase
-      .from('users')
-      .select('id')
-      .ilike('email', email)
-      .single();
+    try {
+      const freshOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      const { data: user, error: fetchError } = await supabase
+        .from('users')
+        .select('id')
+        .ilike('email', email)
+        .single();
 
-    if (fetchError || !user) return { success: false, error: 'User not found' };
+      if (fetchError || !user) throw new Error('User not found');
 
-    // Update the database with the fresh OTP. 
-    // This triggers the user's Supabase email template/webhook.
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({ otp_code: freshOtp })
-      .eq('id', user.id);
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ otp_code: freshOtp })
+        .eq('id', user.id);
 
-    if (updateError) {
-      console.error('Failed to trigger OTP email:', updateError);
-      return { success: false, error: 'Failed to send OTP. Please try again later.' };
+      if (updateError) throw updateError;
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error sending OTP:', error);
+      return { success: false, error: error.message };
     }
-
-    // Also store in sessionStorage for the verify step
-    sessionStorage.setItem('current_otp', freshOtp);
-    sessionStorage.setItem('current_otp_email', email);
-    return { success: true };
   },
 
   verifyOTPCode: async (email, code) => {

@@ -329,87 +329,11 @@ function CloseTradeModal({ trade, onClose, onSuccess }) {
   );
 }
 
-/* ── SECURITY CODES SUB-SECTION ── */
-function SecurityCodesSection({ user, onUpdate }) {
-  const [codes, setCodes] = useState({
-    otp_code: user.otp_code || '',
-    cot_code: user.cot_code || ''
-  });
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-
-  useEffect(() => {
-    setCodes({
-      otp_code: user.otp_code || '',
-      cot_code: user.cot_code || ''
-    });
-    setSuccess(false);
-  }, [user]);
-
-  const handleSave = async () => {
-    setLoading(true);
-    const ok = await SynoxDB.updateUser(user.id, {
-      otp_code: codes.otp_code,
-      cot_code: codes.cot_code
-    });
-    setLoading(false);
-    if (ok) {
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
-      onUpdate();
-    } else {
-      alert("Failed to update security codes.");
-    }
-  };
-
-  return (
-    <div className="admin-detail-section" style={{ border: '1px solid rgba(245,158,11,0.2)', background: 'rgba(245,158,11,0.03)' }}>
-      <div className="admin-detail-section-title" style={{ color: 'var(--admin-gold)' }}>
-        <i className="fas fa-shield-alt" />Security Verification Codes
-      </div>
-      <div className="admin-form-grid" style={{ marginTop: 12 }}>
-        <div className="admin-form-group">
-          <label className="admin-form-label">OTP Code (Login)</label>
-          <input 
-            className="admin-form-input" 
-            type="text" 
-            value={codes.otp_code} 
-            onChange={e => setCodes({...codes, otp_code: e.target.value})} 
-            placeholder="e.g. 123456" 
-          />
-          <span className="admin-form-hint">Used during 2FA login verification</span>
-        </div>
-        <div className="admin-form-group">
-          <label className="admin-form-label">COT Code (Transfers)</label>
-          <input 
-            className="admin-form-input" 
-            type="text" 
-            value={codes.cot_code} 
-            onChange={e => setCodes({...codes, cot_code: e.target.value})} 
-            placeholder="e.g. 9988" 
-          />
-          <span className="admin-form-hint">Course of Transfer verification code</span>
-        </div>
-      </div>
-      <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
-        <button className="admin-btn admin-btn-gold" style={{ padding: '8px 20px', fontSize: '0.85rem' }} onClick={handleSave} disabled={loading}>
-          {loading ? <i className="fas fa-circle-notch fa-spin me-2" /> : <i className="fas fa-save me-2" />}
-          Update Codes
-        </button>
-        {success && (
-          <span style={{ color: 'var(--admin-green)', fontSize: '0.8rem', fontWeight: 600 }}>
-            <i className="fas fa-check-circle me-1" />Saved!
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
-
 /* ═══════════════════════════════════════════════════════════════
    BANKING SECTION
 ═══════════════════════════════════════════════════════════════ */
 function BankingSection({ users, loadUsers }) {
+
 
   const [search, setSearch] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
@@ -524,11 +448,8 @@ function BankingSection({ users, loadUsers }) {
                 </div>
               </div>
 
-              {/* Security Codes Section */}
-              <SecurityCodesSection user={selectedUser} onUpdate={() => { loadUsers(); }} />
-
-
               {/* Account Info */}
+
               <div className="admin-detail-section">
                 <div className="admin-detail-section-title"><i className="fas fa-university" />Account Information</div>
                 <div className="admin-detail-grid">
