@@ -1,0 +1,175 @@
+/* Registration Page Styles - Enhanced for Synox */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap');
+
+:root {
+  --main-gradient: linear-gradient(45deg, #00F1B5, #D9FF43);
+  --brand-teal: #003D3F;
+  --dark-teal: #012A2B;
+  --light-bg: #F8FBFB;
+  --border-color: #E4EEEF;
+}
+
+body {
+  background-color: #FFFFFF;
+  font-family: "Inter", sans-serif;
+  color: #333;
+}
+
+/* Registration Header Section */
+.registration-header {
+  background: #f8f9fa;
+  padding: 140px 0 80px;
+  /* Increased top padding for fixed header */
+  text-align: center;
+  color: var(--brand-teal);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.registration-header h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.5rem, 5vw, 3.5rem);
+  font-weight: 800;
+  margin-bottom: 15px;
+  color: #001a1a;
+}
+
+.registration-header p {
+  font-size: 1.1rem;
+  color: #666;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Form Container */
+.form-container {
+  background: white;
+  padding: 50px;
+  margin-top: -50px;
+  border-radius: 20px;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.08);
+  position: relative;
+  z-index: 10;
+  border: 1px solid #f0f0f0;
+}
+
+/* Form Section Titles */
+.form-section-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--brand-teal);
+  margin-bottom: 25px;
+  margin-top: 40px;
+  border-left: 4px solid #00F1B5;
+  padding-left: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.form-section-title:first-child {
+  margin-top: 0;
+}
+
+/* Form Group Spacing */
+.form-group {
+  margin-bottom: 20px;
+}
+
+/* Input Labels */
+.form-group .input_title {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #444;
+}
+
+.required-star {
+  color: #ff4d4d;
+  margin-left: 3px;
+}
+
+/* Input Controls */
+.form-group .form-control,
+.form-group .form-select {
+  font-size: 16px;
+  box-shadow: none;
+  border-radius: 10px;
+  color: #333;
+  transition: all 0.3s ease;
+  border: 1px solid var(--border-color);
+  background-color: var(--light-bg);
+  padding: 12px 18px;
+  height: auto;
+}
+
+.form-group .form-control:focus,
+.form-group .form-select:focus {
+  background-color: #FFFFFF;
+  border-color: #00F1B5;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* Register Button */
+.btn-register {
+  padding: 18px 40px;
+  font-size: 18px;
+  font-weight: 700;
+  border-radius: 50px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 400ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border: 0;
+  background: var(--main-gradient);
+  color: var(--brand-teal);
+  width: 100%;
+  margin-top: 30px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  box-shadow: 0 10px 25px rgba(0, 241, 181, 0.2);
+}
+
+.btn-register:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0, 241, 181, 0.3);
+}
+
+/* Footer Links */
+.footer-links {
+  text-align: center;
+  margin-top: 30px;
+  font-size: 16px;
+  color: #888;
+}
+
+.footer-links a {
+  color: var(--brand-teal);
+  font-weight: 700;
+  text-decoration: none;
+  border-bottom: 2px solid #00F1B5;
+  padding-bottom: 2px;
+  margin-left: 5px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 991px) {
+  .registration-header {
+    padding: 130px 0 70px;
+  }
+}
+
+@media (max-width: 768px) {
+  .registration-header h1 {
+    font-size: 2rem;
+  }
+
+  .form-container {
+    padding: 30px 20px;
+    margin-top: -30px;
+  }
+
+  .form-section-title {
+    font-size: 18px;
+  }
+}

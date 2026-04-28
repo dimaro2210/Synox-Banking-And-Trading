@@ -1,0 +1,307 @@
+/* === Header CSS === */
+
+/* Liquid Glass Header Customization */
+.site_header .navbar {
+  position: fixed !important;
+  top: 20px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: 92% !important;
+  max-width: 1400px !important;
+  background: rgb(255 255 255 / 10%) !important;
+  backdrop-filter: blur(15px) !important;
+  backdrop-filter: blur(15px) !important;
+  border-radius: 40px !important;
+  border: 1px solid rgb(255 255 255 / 20%) !important;
+  box-shadow: 0 8px 32px 0 rgb(31 38 135 / 15%) !important;
+  z-index: 1000 !important;
+  padding: 10px 30px !important;
+  transition: all 0.3s ease !important;
+}
+
+.site_logo {
+  padding-left: 15px;
+}
+
+.site_logo img {
+  max-height: 45px;
+  width: auto;
+}
+
+.main_menu_list .nav-link {
+  color: #fff !important;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 30%);
+  font-weight: 500;
+  padding: 10px 20px !important;
+  font-size: 16px;
+  transition: color 0.3s ease;
+}
+
+.main_menu_list .nav-link:hover,
+.main_menu_list .active .nav-link {
+  color: #ffd700 !important;
+}
+
+/* Scrolled State */
+.site_header .navbar.is-fixed {
+  background: rgb(255 255 255 / 90%) !important;
+  top: 0 !important;
+  width: 100% !important;
+  border-radius: 0 !important;
+}
+
+.site_header .navbar.is-fixed .nav-link {
+  color: #002d72 !important;
+  text-shadow: none;
+}
+
+.site_header .navbar.is-fixed .site_logo span {
+  color: #002d72 !important;
+  text-shadow: none !important;
+}
+
+.header-btn {
+  padding-right: 15px;
+}
+
+.header-btn .btn-login {
+  background-color: rgb(0 45 114 / 80%);
+  color: #fff;
+  border: 1px solid rgb(255 255 255 / 30%);
+  padding: 10px 25px;
+  border-radius: 50px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s;
+  backdrop-filter: blur(5px);
+}
+
+.header-btn .btn-login:hover {
+  background-color: #ffd700;
+  color: #002d72;
+  border-color: #ffd700;
+}
+
+/* Mobile Menu Toggle Button - Black */
+.navbar-toggler {
+  border: none;
+  color: #000 !important;
+  font-size: 26px;
+  padding: 8px 12px;
+}
+
+.navbar-toggler:focus {
+  box-shadow: none;
+  outline: none;
+}
+
+@media (max-width: 991px) {
+  .site_header .navbar {
+    padding: 10px 15px !important;
+    border-radius: 25px !important;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* Logo on left */
+  .site_logo {
+    order: 1;
+    padding-left: 5px;
+  }
+
+  /* Menu button on right */
+  .navbar-toggler {
+    order: 2;
+    margin-right: 0;
+    margin-left: auto;
+    z-index: 1050;
+    /* Above sidebar */
+  }
+
+  /* Hide desktop login button */
+  .header-btn {
+    display: none !important;
+  }
+
+  /* Sidebar styling replacing Dropdown */
+  .navbar-collapse {
+    position: absolute !important;
+    top: -20px;
+    left: calc(50vw + 50%) !important;
+    right: auto !important;
+    width: 320px;
+    height: 100vh;
+    background: #ffffff !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    padding: 80px 30px 40px;
+    /* Adjusted padding for better edge spacing */
+    border-left: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: none !important;
+    display: flex !important;
+    flex-direction: column;
+    /* Overriding bootstrap flex layout to act as standard sidebar */
+    margin-top: 0;
+    border-radius: 0;
+    z-index: 1040;
+    overflow-y: auto;
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  }
+
+  .site_logo,
+  .navbar-toggler {
+    transition: opacity 0.3s ease;
+  }
+
+  /* When the sidebar is shown */
+  .sidebar-open .site_header .navbar {
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .sidebar-open .site_logo,
+  .sidebar-open .navbar-toggler {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* Slide in sidebar */
+  .sidebar-open .navbar-collapse {
+    transform: translateX(-320px) !important;
+  }
+
+  /* Close Button inside Sidebar */
+  .btn-close-sidebar {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    /* Moved close button inside properly relative to right side */
+    left: auto;
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: #002d72;
+    cursor: pointer;
+    z-index: 1050;
+    transition: transform 0.3s;
+  }
+
+  .btn-close-sidebar:hover {
+    transform: rotate(90deg);
+    color: #ffd700;
+  }
+
+  .main_menu_list {
+    flex-direction: column;
+    text-align: left;
+    margin-top: 20px;
+    display: flex !important;
+    /* Restore proper list stacking */
+    gap: 5px;
+    /* Even spacing between links */
+  }
+
+  .main_menu_list .nav-item {
+    width: 100%;
+    margin: 0 !important;
+  }
+
+  .main_menu_list .nav-link {
+    color: #002d72 !important;
+    padding: 12px 15px !important;
+    /* Nice padding area for hover state */
+    font-size: 18px;
+    font-weight: 600;
+    text-shadow: none !important;
+    border-radius: 8px;
+    /* Smooth highlight edges */
+  }
+
+  .main_menu_list .nav-link:hover {
+    color: #ffd700 !important;
+    background: #002d72;
+    padding-left: 15px !important;
+    /* Keep padding consistent, cancel out old list format slide */
+  }
+
+  /* Mobile Buttons in Sidebar */
+  .mobile-sidebar-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: auto;
+  }
+
+  .btn-sidebar-primary,
+  .btn-sidebar-secondary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: 700;
+    padding: 14px 20px;
+    font-size: 16px;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: all 0.3s;
+    width: 100%;
+  }
+
+  .btn-sidebar-primary {
+    background: linear-gradient(135deg, #002d72, #0a192f);
+    color: #fff !important;
+    border: none;
+    box-shadow: 0 5px 15px rgba(0, 45, 114, 0.3);
+  }
+
+  .btn-sidebar-primary:hover {
+    background: linear-gradient(135deg, #0a192f, #002d72);
+    transform: translateY(-2px);
+    color: #fff !important;
+  }
+
+  .btn-sidebar-secondary {
+    background: transparent;
+    color: #002d72 !important;
+    border: 2px solid #002d72;
+  }
+
+  .btn-sidebar-secondary:hover {
+    background: #002d72;
+    color: #fff !important;
+  }
+}
+
+/* Hero Section Updates */
+.hero_section {
+  padding-top: 180px;
+  background-size: cover;
+  background-position: center;
+}
+
+.hero_title {
+  color: #fff;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.hero_text {
+  font-size: 18px;
+  line-height: 1.6;
+  color: rgb(255 255 255 / 90%);
+  margin-bottom: 30px;
+  max-width: 600px;
+}
+
+/* Removing star decoration */
+.decoration_item.icon_star_1,
+.decoration_item.icon_star_2 {
+  display: none !important;
+}
