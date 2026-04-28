@@ -70,14 +70,19 @@ const ProfileSettingsPage = () => {
               </h5>
               
               <div className="d-flex flex-column flex-sm-row align-items-center mb-5 p-3 p-md-4 bg-light rounded-lg border border-light">
-                <div className="position-relative me-sm-4 mb-3 mb-sm-0 flex-shrink-0">
-                  <img
-                    src={user.profile_picture || "https://randomuser.me/api/portraits/men/32.jpg"}
-                    className="rounded-circle shadow-sm profile-img-display"
-                    style={{ width: '100px', height: '100px', objectFit: 'cover', border: '4px solid #fff' }}
-                    id="settings-profile-img"
-                    alt="Profile"
-                  />
+                <div className="position-relative profile-img-container mx-auto" style={{ width: '120px', height: '120px' }}>
+                  {user.profile_picture ? (
+                    <img 
+                      src={user.profile_picture} 
+                      className="rounded-circle shadow border border-4 border-white" 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      alt="Profile"
+                    />
+                  ) : (
+                    <div className="rounded-circle shadow border border-4 border-white d-flex align-items-center justify-content-center bg-light" style={{ width: '100%', height: '100%' }}>
+                      <i className="fas fa-user text-muted fa-3x"></i>
+                    </div>
+                  )}
                   <input
                     type="file"
                     id="profile-upload"

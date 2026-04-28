@@ -157,21 +157,33 @@ const DashboardLayout = ({ children, sidebarOverride, onNotificationClick, custo
             <div className="ms-3">
               {disableProfileLink ? (
                 <div className="d-flex align-items-center border-0 p-0" title="Personal Profile">
-                  <img 
-                    src={user.profile_picture || "https://randomuser.me/api/portraits/men/32.jpg"} 
-                    className="rounded-circle shadow-sm profile-img-display border border-light" 
-                    style={{ width: '42px', height: '42px', objectFit: 'cover' }}
-                    alt="Avatar"
-                  />
+                  {user.profile_picture ? (
+                    <img 
+                      src={user.profile_picture} 
+                      className="rounded-circle shadow-sm profile-img-display border border-light" 
+                      style={{ width: '42px', height: '42px', objectFit: 'cover' }}
+                      alt="Avatar"
+                    />
+                  ) : (
+                    <div className="rounded-circle shadow-sm d-flex align-items-center justify-content-center bg-light border border-light" style={{ width: '42px', height: '42px' }}>
+                      <i className="fas fa-user text-muted"></i>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <Link to="/dashboard/profile" className="d-flex align-items-center bg-transparent border-0 p-0 text-decoration-none" title="Personal Profile">
-                  <img 
-                    src={user.profile_picture || "https://randomuser.me/api/portraits/men/32.jpg"} 
-                    className="rounded-circle shadow-sm profile-img-display hover-opacity-80 transition-all border border-light" 
-                    style={{ width: '42px', height: '42px', objectFit: 'cover', cursor: 'pointer' }}
-                    alt="Avatar"
-                  />
+                  {user.profile_picture ? (
+                    <img 
+                      src={user.profile_picture} 
+                      className="rounded-circle shadow-sm profile-img-display hover-opacity-80 transition-all border border-light" 
+                      style={{ width: '42px', height: '42px', objectFit: 'cover', cursor: 'pointer' }}
+                      alt="Avatar"
+                    />
+                  ) : (
+                    <div className="rounded-circle shadow-sm d-flex align-items-center justify-content-center bg-light hover-opacity-80 transition-all border border-light" style={{ width: '42px', height: '42px' }}>
+                      <i className="fas fa-user text-muted"></i>
+                    </div>
+                  )}
                 </Link>
               )}
             </div>
