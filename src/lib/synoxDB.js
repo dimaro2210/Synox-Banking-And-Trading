@@ -141,19 +141,74 @@ export const SynoxDB = {
   },
 
   // ─────────────────────────────────────────────────────────
-  // OTP
+  // OTP — reads otp_code from Supabase users table
   // ─────────────────────────────────────────────────────────
   sendOTPEmail: async (email) => {
-    sessionStorage.setItem('current_otp', '123456');
+    // Fetch the otp_code set by admin in Supabase
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('id, otp_code')
+      .ilike('email', email);
+
+    if (error || !users || users.length === 0) {
+      return { success: false, error: 'User not found' };
+    }
+
+    const user = users[0];
+    if (!user.otp_code) {
+      return { success: false, error: 'No OTP code has been set for this account. Please contact support.' };
+    }
+
+    // Store in sessionStorage so verifyOTPCode can check it
+    sessionStorage.setItem('current_otp', user.otp_code);
+    sessionStorage.setItem('current_otp_email', email);
     return { success: true };
   },
 
   verifyOTPCode: async (email, code) => {
-    const storedOtp = sessionStorage.getItem('current_otp');
-    if (code === '123456' || code === storedOtp) {
+    // Verify against the otp_code stored in Supabase
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('id, otp_code')
+      .ilike('email', email);
+
+    if (error || !users || users.length === 0) {
+      return { success: false, error: 'User not found' };
+    }
+
+    const user = users[0];
+    if (!user.otp_code) {
+      return { success: false, error: 'No OTP code has been set for this account. Please contact support.' };
+    }
+
+    if (code.trim() === user.otp_code.trim()) {
       return { success: true, session: { user: { email } } };
     }
-    return { success: false, error: 'Invalid OTP code. Try 123456' };
+    return { success: false, error: 'Invalid OTP code. Please try again.' };
+  },
+
+  // ─────────────────────────────────────────────────────────
+  // COT — reads cot_code from Supabase users table
+  // ─────────────────────────────────────────────────────────
+  verifyCOTCode: async (userId, code) => {
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('cot_code')
+      .eq('id', userId)
+      .single();
+
+    if (error || !user) {
+      return { success: false, error: 'User not found' };
+    }
+
+    if (!user.cot_code) {
+      return { success: false, error: 'No COT code has been set for this account. Please contact support.' };
+    }
+
+    if (code.trim() === user.cot_code.trim()) {
+      return { success: true };
+    }
+    return { success: false, error: 'Invalid COT code. Please check your records and try again.' };
   },
 
   // ─────────────────────────────────────────────────────────

@@ -77,17 +77,26 @@ const TransfersPage = () => {
     }
   };
 
-  const handleCOTSubmit = () => {
+  const handleCOTSubmit = async () => {
     if (!cotCode || cotCode.length < 4) {
       setCotError('Please enter a valid COT code.');
       return;
     }
+
+    const userId = sessionStorage.getItem('synox_user_id');
+
+    // Validate COT code against Supabase
+    const cotResult = await SynoxDB.verifyCOTCode(userId, cotCode);
+    if (!cotResult.success) {
+      setCotError(cotResult.error || 'Invalid COT code. Please try again.');
+      return;
+    }
+
     setCotError('');
     setStep(4);
     
-    // Processing step — simulate delay then execute transfer
+    // Processing step — execute transfer
     setTimeout(async () => {
-      const userId = sessionStorage.getItem('synox_user_id');
       const desc = activeTab === 'internal'
         ? `Internal Transfer to ${internalForm.recipientName}`
         : `International Wire to ${intlForm.recipientName}`;
@@ -111,6 +120,7 @@ const TransfersPage = () => {
       setStep(5);
     }, 3000);
   };
+
 
   const resetFlow = () => {
     setStep(1);
