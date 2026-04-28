@@ -17,20 +17,39 @@ export const SynoxDB = {
   // AUTH
   // ─────────────────────────────────────────────────────────
   authenticateUser: async (email, password) => {
-    const { data: users, error } = await supabase
-      .from('users')
-      .select('*')
-      .ilike('email', email)
-      .eq('password_hash', password);
+    try {
+      // 1. Try to sign in with Supabase Auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
 
-    if (error) {
+      if (error) {
+        // Fallback: check the public users table (in case auth is not fully configured)
+        const { data: users } = await supabase
+          .from('users')
+          .select('*')
+          .ilike('email', email)
+          .eq('password_hash', password);
+        
+        if (users && users.length > 0) {
+          return { success: true, user: users[0] };
+        }
+        throw error;
+      }
+
+      // 2. If Auth successful, get the public profile
+      const { data: user } = await supabase
+        .from('users')
+        .select('*')
+        .ilike('email', email)
+        .single();
+
+      return { success: true, user: user || data.user };
+    } catch (error) {
       console.error('Auth error:', error);
-      return { success: false, error: 'Database error occurred' };
+      return { success: false, error: error.message };
     }
-    if (users && users.length > 0) {
-      return { success: true, user: users[0] };
-    }
-    return { success: false, error: 'Invalid credentials' };
   },
 
   // ─────────────────────────────────────────────────────────
@@ -140,28 +159,17 @@ export const SynoxDB = {
     return data || [];
   },
 
-  // ─────────────────────────────────────────────────────────
-  // OTP — Generates a fresh code and updates Supabase to trigger email
-  // ─────────────────────────────────────────────────────────
   sendOTPEmail: async (email) => {
     try {
-      const freshOtp = Math.floor(100000 + Math.random() * 900000).toString();
-      
-      const { data: user, error: fetchError } = await supabase
-        .from('users')
-        .select('id')
-        .ilike('email', email)
-        .single();
+      // Trigger Supabase Auth OTP (triggers the Auth Email Template)
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email,
+        options: {
+          shouldCreateUser: false, // Don't create new users here
+        }
+      });
 
-      if (fetchError || !user) throw new Error('User not found');
-
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ otp_code: freshOtp })
-        .eq('id', user.id);
-
-      if (updateError) throw updateError;
-
+      if (error) throw error;
       return { success: true };
     } catch (error) {
       console.error('Error sending OTP:', error);
@@ -169,19 +177,28 @@ export const SynoxDB = {
     }
   },
 
-  verifyOTPCode: async (email, code) => {
-    const { data: user, error } = await supabase
-      .from('users')
-      .select('otp_code')
-      .ilike('email', email)
-      .single();
+  verifyOTPCode: async (email, token) => {
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'email'
+      });
 
-    if (error || !user) return { success: false, error: 'User not found' };
-    
-    if (code.trim() === (user.otp_code || '').trim()) {
-      return { success: true, session: { user: { email } } };
+      if (error) throw error;
+      
+      // If verification successful, get the user profile from public.users
+      const { data: user } = await supabase
+        .from('users')
+        .select('*')
+        .ilike('email', email)
+        .single();
+
+      return { success: true, user, session: data.session };
+    } catch (error) {
+      console.error('Error verifying OTP:', error);
+      return { success: false, error: error.message };
     }
-    return { success: false, error: 'Invalid OTP code. Please try again.' };
   },
 
   // ─────────────────────────────────────────────────────────
