@@ -211,37 +211,37 @@ export const SynoxDB = {
   // ─────────────────────────────────────────────────────────
   // COT — Generates a fresh code and updates Supabase to trigger email
   // ─────────────────────────────────────────────────────────
-  sendCOTEmail: async (userId) => {
-    const freshCot = Math.floor(1000 + Math.random() * 9000).toString();
-    
-    // Update the database with the fresh COT.
-    // This triggers the user's Supabase email template/webhook.
-    const { error } = await supabase
-      .from('users')
-      .update({ cot_code: freshCot })
-      .eq('id', userId);
+  sendCOTEmail: async (email) => {
+    try {
+      // Use Supabase Auth OTP as the COT delivery mechanism
+      // This triggers the native Supabase "Login OTP" template
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email
+      });
 
-    if (error) {
-      console.error('Failed to trigger COT email:', error);
-      return { success: false, error: 'Failed to send verification code.' };
+      if (error) throw error;
+      return { success: true };
+    } catch (error) {
+      console.error('Error sending COT:', error);
+      return { success: false, error: error.message };
     }
-
-    return { success: true };
   },
 
-  verifyCOTCode: async (userId, code) => {
-    const { data: user, error } = await supabase
-      .from('users')
-      .select('cot_code')
-      .eq('id', userId)
-      .single();
+  verifyCOTCode: async (email, token) => {
+    try {
+      // Verify the COT (OTP) using Supabase Auth
+      const { error } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'email'
+      });
 
-    if (error || !user) return { success: false, error: 'User not found' };
-
-    if (code.trim() === (user.cot_code || '').trim()) {
+      if (error) throw error;
       return { success: true };
+    } catch (error) {
+      console.error('Error verifying COT:', error);
+      return { success: false, error: error.message };
     }
-    return { success: false, error: 'Invalid COT code. Please check your email and try again.' };
   },
 
   // ─────────────────────────────────────────────────────────

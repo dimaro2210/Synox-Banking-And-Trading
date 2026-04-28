@@ -95,26 +95,13 @@ const LoginPage = () => {
             <div className="logo-area" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <Logo variant="dark" size="medium" className="mb-4" />
               
-              {/* Conditionally show profile picture on step 2 */}
+              {/* Conditionally show welcome text on step 2 */}
               {step === 2 && userData && (
-                <div id="profile-welcome-section" className="text-center mb-2">
-                  <div className="mb-3">
-                    <img
-                      src={userData.profile_picture || "https://randomuser.me/api/portraits/men/32.jpg"}
-                      className="rounded-circle shadow"
-                      id="welcome-profile-img"
-                      style={{
-                        width: '85px',
-                        height: '85px',
-                        objectFit: 'cover',
-                        border: '3px solid #002D72',
-                      }}
-                      alt="Profile"
-                    />
-                  </div>
+                <div id="profile-welcome-section" className="text-center mb-4">
                   <h5 className="font-weight-bold mb-1" style={{ color: '#002d72' }} id="welcome-name">
-                    Welcome back, {userData.full_name.split(' ')[0]}
+                    Identity Verification
                   </h5>
+                  <p className="text-muted small">Please enter the security code sent to your email.</p>
                 </div>
               )}
 

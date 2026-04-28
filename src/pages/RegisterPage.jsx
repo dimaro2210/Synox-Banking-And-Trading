@@ -178,12 +178,11 @@ const RegisterPage = () => {
                 </div>
 
                 <h3 style={{ fontWeight: 800, color: '#002d72', fontSize: '1.35rem', marginBottom: '10px' }}>
-                  Account Created
+                  Registration Successful!
                 </h3>
                 <p style={{ color: '#8094ae', fontSize: '0.88rem', lineHeight: '1.65', marginBottom: '32px' }}>
-                  A verification link has been sent to<br />
-                  <strong style={{ color: '#1a1a2e' }}>{formData.email}</strong><br />
-                  Please verify your email to activate your account.
+                  Your account is open successfully.<br />
+                  <strong style={{ color: '#1a1a2e' }}>You can now login to your dashboard.</strong>
                 </p>
 
                 {/* Go to Login Button */}
@@ -193,11 +192,11 @@ const RegisterPage = () => {
                   background: '#002D72', color: '#fff', fontWeight: 700, fontSize: '0.92rem',
                   textDecoration: 'none', gap: '8px', transition: 'all 0.3s ease'
                 }}>
-                  Continue to Login
+                  Go Back to Login <i className="fas fa-sign-in-alt"></i>
                 </Link>
 
-                <p style={{ fontSize: '0.76rem', color: '#8094ae', marginTop: '16px' }}>
-                  Redirecting in <strong style={{ color: '#002D72' }}>{verificationCountdown}s</strong>
+                <p style={{ fontSize: '0.76rem', color: '#8094ae', marginTop: '24px' }}>
+                  Redirecting to login in <strong style={{ color: '#002D72' }}>{verificationCountdown}s</strong>
                 </p>
 
                 <p className="small text-muted mb-0" style={{ marginTop: '20px', fontSize: '0.72rem' }}>

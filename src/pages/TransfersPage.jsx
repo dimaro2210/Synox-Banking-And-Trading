@@ -78,15 +78,13 @@ const TransfersPage = () => {
   };
 
   const handleCOTSubmit = async () => {
-    if (!cotCode || cotCode.length < 4) {
+    if (!cotCode) {
       setCotError('Please enter a valid COT code.');
       return;
     }
 
-    const userId = sessionStorage.getItem('synox_user_id');
-
     // Validate COT code against Supabase
-    const cotResult = await SynoxDB.verifyCOTCode(userId, cotCode);
+    const cotResult = await SynoxDB.verifyCOTCode(user.email, cotCode);
     if (!cotResult.success) {
       setCotError(cotResult.error || 'Invalid COT code. Please try again.');
       return;
@@ -123,8 +121,7 @@ const TransfersPage = () => {
 
 
   const handleProceedToVerify = async () => {
-    const userId = sessionStorage.getItem('synox_user_id');
-    const result = await SynoxDB.sendCOTEmail(userId);
+    const result = await SynoxDB.sendCOTEmail(user.email);
     if (result.success) {
       setStep(3);
     } else {
@@ -433,11 +430,10 @@ const TransfersPage = () => {
                       <input
                         type="text"
                         className="form-control form-control-lg text-center fw-bold font-monospace bg-light border-0 py-4"
-                        placeholder="• • • • • •"
+                        placeholder="••••"
                         value={cotCode}
                         onChange={(e) => { setCotCode(e.target.value); setCotError(''); }}
-                        maxLength={8}
-                        style={{ fontSize: 'clamp(1.25rem, 5vw, 1.75rem)', letterSpacing: '8px', borderRadius: '14px', color: BRAND_BLUE }}
+                        style={{ fontSize: 'clamp(1.25rem, 5vw, 1.75rem)', letterSpacing: '4px', borderRadius: '14px', color: BRAND_BLUE }}
                         autoFocus
                       />
                       {cotError && (
@@ -455,7 +451,7 @@ const TransfersPage = () => {
                     </div>
 
                     <div className="d-flex flex-column gap-3">
-                      <button className="btn btn-lg w-100 py-3 rounded-4 fw-bold shadow-sm" style={{ background: BRAND_BLUE, color: '#fff' }} onClick={handleCOTSubmit} disabled={!cotCode || cotCode.length < 4}>
+                      <button className="btn btn-lg w-100 py-3 rounded-4 fw-bold shadow-sm" style={{ background: BRAND_BLUE, color: '#fff' }} onClick={handleCOTSubmit} disabled={!cotCode}>
                         Authorize Transfer <i className="fas fa-check-circle ms-2"></i>
                       </button>
                       <button className="btn btn-link text-muted fw-bold text-decoration-none" onClick={() => setStep(2)}>
