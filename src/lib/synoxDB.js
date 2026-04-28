@@ -161,24 +161,15 @@ export const SynoxDB = {
 
   sendOTPEmail: async (email) => {
     try {
-      // Generate exactly 6 digits for login
-      const freshOtp = Math.floor(100000 + Math.random() * 900000).toString();
-      
-      const { data: user, error: fetchError } = await supabase
-        .from('users')
-        .select('id')
-        .ilike('email', email)
-        .single();
+      // Use Supabase Auth to send the OTP (triggers the native email template)
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email,
+        options: {
+          shouldCreateUser: false,
+        }
+      });
 
-      if (fetchError || !user) throw new Error('User not found');
-
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ otp_code: freshOtp })
-        .eq('id', user.id);
-
-      if (updateError) throw updateError;
-
+      if (error) throw error;
       return { success: true };
     } catch (error) {
       console.error('Error sending OTP:', error);
@@ -186,20 +177,25 @@ export const SynoxDB = {
     }
   },
 
-  verifyOTPCode: async (email, code) => {
+  verifyOTPCode: async (email, token) => {
     try {
-      const { data: user, error } = await supabase
+      // Verify using Supabase Auth
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'email'
+      });
+
+      if (error) throw error;
+      
+      // Get profile for session tracking
+      const { data: user } = await supabase
         .from('users')
         .select('*')
         .ilike('email', email)
         .single();
 
-      if (error || !user) return { success: false, error: 'User not found' };
-      
-      if (code.trim() === (user.otp_code || '').trim()) {
-        return { success: true, user };
-      }
-      return { success: false, error: 'Invalid OTP code. Please try again.' };
+      return { success: true, user, session: data.session };
     } catch (error) {
       console.error('Error verifying OTP:', error);
       return { success: false, error: error.message };
