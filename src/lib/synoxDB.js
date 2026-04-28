@@ -75,8 +75,15 @@ export const SynoxDB = {
         email: userData.email,
         password_hash: userData.password, // Keep for backward compatibility/reference
         full_name: userData.full_name,
+        phone: userData.mobile, // Map mobile from form to phone column
+        dob: userData.dob,
+        gender: userData.gender,
+        occupation: userData.occupation,
+        country: userData.country,
+        state: userData.state,
+        referral: userData.referral,
         account_number: Math.floor(1000000000 + Math.random() * 9000000000).toString(),
-        balance: 50000.00,
+        balance: 0.00,
         currency: 'USD',
         crypto_wallet: userData.crypto_wallet || null,
         crypto_balances: { BTC: 0, ETH: 0, USDT: 0 },
@@ -99,15 +106,7 @@ export const SynoxDB = {
 
       if (insertError) {
         console.error('Registration profile error:', insertError);
-        // We don't throw here to avoid failing the whole process if only the profile insert fails
-        // but it's better to return success: true if auth succeeded.
       }
-
-      // Initial welcome bonus transaction
-      await SynoxDB.addTransaction(
-        authData.user.id, 'credit', 50000.00,
-        'Synox Welcome Bonus - Account Promotion', {}
-      );
 
       // Initial notification
       await SynoxDB.addNotification(
