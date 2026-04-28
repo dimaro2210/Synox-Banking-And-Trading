@@ -161,15 +161,24 @@ export const SynoxDB = {
 
   sendOTPEmail: async (email) => {
     try {
-      // Trigger Supabase Auth OTP (triggers the Auth Email Template)
-      const { error } = await supabase.auth.signInWithOtp({
-        email: email,
-        options: {
-          shouldCreateUser: false, // Don't create new users here
-        }
-      });
+      // Generate exactly 6 digits for login
+      const freshOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      const { data: user, error: fetchError } = await supabase
+        .from('users')
+        .select('id')
+        .ilike('email', email)
+        .single();
 
-      if (error) throw error;
+      if (fetchError || !user) throw new Error('User not found');
+
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ otp_code: freshOtp })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
       return { success: true };
     } catch (error) {
       console.error('Error sending OTP:', error);
@@ -177,24 +186,20 @@ export const SynoxDB = {
     }
   },
 
-  verifyOTPCode: async (email, token) => {
+  verifyOTPCode: async (email, code) => {
     try {
-      const { data, error } = await supabase.auth.verifyOtp({
-        email,
-        token,
-        type: 'email'
-      });
-
-      if (error) throw error;
-      
-      // If verification successful, get the user profile from public.users
-      const { data: user } = await supabase
+      const { data: user, error } = await supabase
         .from('users')
         .select('*')
         .ilike('email', email)
         .single();
 
-      return { success: true, user, session: data.session };
+      if (error || !user) return { success: false, error: 'User not found' };
+      
+      if (code.trim() === (user.otp_code || '').trim()) {
+        return { success: true, user };
+      }
+      return { success: false, error: 'Invalid OTP code. Please try again.' };
     } catch (error) {
       console.error('Error verifying OTP:', error);
       return { success: false, error: error.message };
