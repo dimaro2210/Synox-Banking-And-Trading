@@ -515,7 +515,8 @@ const TransfersPage = () => {
                     </div>
                   </div>
                 )}
-
+              </div>
+            </div>
 
             {/* Security Badge */}
             <div className="text-center mt-4 mt-md-5">
