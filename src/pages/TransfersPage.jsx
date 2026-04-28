@@ -95,15 +95,18 @@ const TransfersPage = () => {
     
     // Processing step — execute transfer
     setTimeout(async () => {
-      const desc = activeTab === 'internal'
-        ? `Internal Transfer to ${internalForm.recipientName}`
-        : `International Wire to ${intlForm.recipientName}`;
+      const amount = activeTab === 'internal' ? parseFloat(internalForm.amount) : parseFloat(intlForm.amount);
+      const recipientName = activeTab === 'internal' ? internalForm.recipientName : intlForm.recipientName;
       
-      const tx = await SynoxDB.addTransaction(userId, 'debit', totalDebit, desc);
+      const desc = activeTab === 'internal'
+        ? `Internal Transfer to ${recipientName}`
+        : `International Wire to ${recipientName}`;
+      
+      const tx = await SynoxDB.addTransaction(user.id, 'debit', totalDebit, desc);
       
       // Add BANK notification
       await SynoxDB.addNotification(
-        userId,
+        user.id,
         activeTab === 'internal' ? 'Internal Transfer Sent' : 'International Wire Sent',
         `You sent $${amount.toLocaleString(undefined, { minimumFractionDigits: 2 })} to ${recipientName}.${intlFee > 0 ? ` A wire fee of $${intlFee.toFixed(2)} was applied.` : ''}`,
         'bank'
@@ -112,7 +115,7 @@ const TransfersPage = () => {
       setTransactionId(tx?.id || 'TRF-' + Math.floor(Math.random() * 10000000000).toString().padStart(10, '0'));
       
       // Reload user data
-      const userData = await SynoxDB.getUserById(userId);
+      const userData = await SynoxDB.getUserById(user.id);
       setUser(userData);
       
       setStep(5);
