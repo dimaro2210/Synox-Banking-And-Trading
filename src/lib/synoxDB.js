@@ -108,13 +108,7 @@ export const SynoxDB = {
         console.error('Registration profile error:', insertError);
       }
 
-      // Initial notification
-      await SynoxDB.addNotification(
-        authData.user.id,
-        'Account Activated',
-        'Welcome to Synox Bank! Your account is now fully active.',
-        'bank'
-      );
+
 
       triggerUpdate();
       return { success: true, user: insertedUser || authData.user };
@@ -628,6 +622,83 @@ export const SynoxDB = {
       `Your recent deposit of $${deposit.amount.toLocaleString()} was not approved. Reason: ${rejectReason}.`,
       'crypto'
     );
+
+    triggerUpdate();
+    return { success: true };
+  },
+
+  // ─────────────────────────────────────────────────────────
+  // ADMIN — UPDATE USER BALANCE (Bank + Crypto)
+  // ─────────────────────────────────────────────────────────
+  adminUpdateUserBalance: async (userId, { bankBalance, cryptoBalances } = {}) => {
+    const updates = {};
+    if (bankBalance !== undefined && bankBalance !== null) {
+      updates.balance = parseFloat(bankBalance);
+    }
+    if (cryptoBalances !== undefined && cryptoBalances !== null) {
+      updates.crypto_balances = cryptoBalances;
+    }
+
+    if (Object.keys(updates).length === 0) return { success: false, error: 'No updates provided' };
+
+    const ok = await SynoxDB.updateUser(userId, updates);
+    if (!ok) return { success: false, error: 'Database update failed' };
+
+    // Notify the user about balance change
+    const parts = [];
+    if (updates.balance !== undefined) parts.push(`Bank balance updated to $${parseFloat(updates.balance).toLocaleString(undefined, { minimumFractionDigits: 2 })}`);
+    if (updates.crypto_balances) parts.push('Crypto portfolio balances have been updated');
+
+    await SynoxDB.addNotification(
+      userId,
+      'Account Balance Updated',
+      parts.join('. ') + '.',
+      updates.crypto_balances ? 'crypto' : 'bank'
+    );
+
+    triggerUpdate();
+    return { success: true };
+  },
+
+  // ─────────────────────────────────────────────────────────
+  // ADMIN — DELETE TRADE (open or closed) & reverse balance
+  // ─────────────────────────────────────────────────────────
+  adminDeleteTrade: async (tradeId, tableType, trade) => {
+    // 1. Delete the trade row
+    const { error } = await supabase.from(tableType).delete().eq('id', tradeId);
+    if (error) {
+      console.error('adminDeleteTrade error:', error);
+      return { success: false, error: error.message };
+    }
+
+    // 2. Reverse balance impact on the user
+    const user = await SynoxDB.getUserById(trade.user_id);
+    if (user) {
+      const balanceUpdates = {};
+
+      if (tableType === 'closed_trades') {
+        // Closed trades had amount_usd + profit credited to trading_balance_total
+        // and profit credited to trading_balance_profit via closeTrade()
+        const profit = parseFloat(trade.profit || 0);
+        const amount = parseFloat(trade.amount_usd || 0);
+        balanceUpdates.trading_balance_total = Math.max(0, (user.trading_balance_total || 0) - amount - profit);
+        balanceUpdates.trading_balance_profit = Math.max(0, (user.trading_balance_profit || 0) - profit);
+      } else {
+        // Open trades — deduct amount_usd from trading_balance_total
+        const amount = parseFloat(trade.amount_usd || 0);
+        balanceUpdates.trading_balance_total = Math.max(0, (user.trading_balance_total || 0) - amount);
+      }
+
+      await SynoxDB.updateUser(trade.user_id, balanceUpdates);
+
+      // Notify user
+      await SynoxDB.addNotification(
+        trade.user_id,
+        `Trade Removed — ${trade.asset_pair}`,
+        `A ${trade.direction} trade on ${trade.asset_pair} for $${parseFloat(trade.amount_usd).toLocaleString(undefined, { minimumFractionDigits: 2 })} has been removed from your account.`,
+        'crypto'
+      );
+    }
 
     triggerUpdate();
     return { success: true };

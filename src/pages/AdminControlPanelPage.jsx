@@ -333,10 +333,45 @@ function CloseTradeModal({ trade, onClose, onSuccess }) {
    BANKING SECTION
 ═══════════════════════════════════════════════════════════════ */
 function BankingSection({ users, loadUsers }) {
-
-
   const [search, setSearch] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
+  const [editBankBal, setEditBankBal] = useState('');
+  const [editCryptoBals, setEditCryptoBals] = useState({});
+  const [savingBank, setSavingBank] = useState(false);
+  const [savingCrypto, setSavingCrypto] = useState(false);
+  const [bankToast, setBankToast] = useState('');
+
+  const showBankToast = (msg) => { setBankToast(msg); setTimeout(() => setBankToast(''), 3500); };
+
+  const openUserDrawer = (u) => {
+    setSelectedUser(u);
+    setEditBankBal(String(u.balance || 0));
+    setEditCryptoBals({ BTC: 0, ETH: 0, USDT: 0, ...(u.crypto_balances || {}) });
+  };
+
+  const refreshSelectedUser = async (userId) => {
+    const updated = await SynoxDB.getUserById(userId);
+    if (updated) { setSelectedUser(updated); setEditBankBal(String(updated.balance || 0)); setEditCryptoBals({ BTC: 0, ETH: 0, USDT: 0, ...(updated.crypto_balances || {}) }); }
+    loadUsers();
+  };
+
+  const handleSaveBankBalance = async () => {
+    setSavingBank(true);
+    const res = await SynoxDB.adminUpdateUserBalance(selectedUser.id, { bankBalance: editBankBal });
+    setSavingBank(false);
+    if (res.success) { showBankToast('Bank balance updated successfully!'); refreshSelectedUser(selectedUser.id); }
+    else showBankToast('Failed to update bank balance.');
+  };
+
+  const handleSaveCryptoBalances = async () => {
+    setSavingCrypto(true);
+    const cleaned = {};
+    for (const [k, v] of Object.entries(editCryptoBals)) cleaned[k] = parseFloat(v) || 0;
+    const res = await SynoxDB.adminUpdateUserBalance(selectedUser.id, { cryptoBalances: cleaned });
+    setSavingCrypto(false);
+    if (res.success) { showBankToast('Crypto balances updated successfully!'); refreshSelectedUser(selectedUser.id); }
+    else showBankToast('Failed to update crypto balances.');
+  };
 
   const filtered = users.filter(u =>
     (u.full_name || '').toLowerCase().includes(search.toLowerCase()) ||
@@ -390,7 +425,7 @@ function BankingSection({ users, loadUsers }) {
               {filtered.length === 0 ? (
                 <tr><td colSpan={6}><div className="admin-empty"><i className="fas fa-users" /><p>No users found</p></div></td></tr>
               ) : filtered.map(u => (
-                <tr key={u.id} onClick={() => setSelectedUser(u)}>
+                <tr key={u.id} onClick={() => openUserDrawer(u)}>
                   <td>
                     <div className="admin-user-cell">
                       <div className="admin-avatar" style={{ overflow: 'hidden' }}>
@@ -468,6 +503,74 @@ function BankingSection({ users, loadUsers }) {
                       <p>{val || '—'}</p>
                     </div>
                   ))}
+                </div>
+              </div>
+
+              {/* ── Edit Balances ─────────────────────────────── */}
+              <div className="admin-detail-section" style={{ border: '1px solid rgba(245,158,11,0.25)', borderRadius: 14, padding: '16px 18px', background: 'rgba(245,158,11,0.04)' }}>
+                <div className="admin-detail-section-title" style={{ color: 'var(--admin-gold)', marginBottom: 16 }}>
+                  <i className="fas fa-edit" />Edit Balances
+                </div>
+
+                {/* Bank Balance */}
+                <div style={{ marginBottom: 18 }}>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px', color: 'var(--admin-text-muted)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <i className="fas fa-university" style={{ color: 'var(--admin-blue)' }} />Bank Balance (USD)
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <div style={{ position: 'relative', flex: 1 }}>
+                      <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--admin-text-muted)', fontWeight: 600 }}>$</span>
+                      <input
+                        className="admin-form-input"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={editBankBal}
+                        onChange={e => setEditBankBal(e.target.value)}
+                        style={{ paddingLeft: 24 }}
+                        placeholder="0.00"
+                      />
+                    </div>
+                    <button
+                      className="admin-btn admin-btn-gold"
+                      style={{ whiteSpace: 'nowrap', padding: '9px 16px' }}
+                      onClick={handleSaveBankBalance}
+                      disabled={savingBank}
+                    >
+                      {savingBank ? <><i className="fas fa-circle-notch fa-spin" /> Saving…</> : <><i className="fas fa-save me-1" />Save</>}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Crypto Balances */}
+                <div>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px', color: 'var(--admin-text-muted)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <i className="fab fa-bitcoin" style={{ color: '#f7931a' }} />Crypto Balances (by asset)
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+                    {Object.entries(editCryptoBals).map(([asset, val]) => (
+                      <div key={asset}>
+                        <label style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--admin-text-muted)', display: 'block', marginBottom: 4 }}>{asset}</label>
+                        <input
+                          className="admin-form-input"
+                          type="number"
+                          min="0"
+                          step="0.000001"
+                          value={val}
+                          onChange={e => setEditCryptoBals(prev => ({ ...prev, [asset]: e.target.value }))}
+                          placeholder="0.000000"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    className="admin-btn admin-btn-gold"
+                    style={{ width: '100%', justifyContent: 'center' }}
+                    onClick={handleSaveCryptoBalances}
+                    disabled={savingCrypto}
+                  >
+                    {savingCrypto ? <><i className="fas fa-circle-notch fa-spin" /> Saving…</> : <><i className="fas fa-coins me-1" />Save Crypto Balances</>}
+                  </button>
                 </div>
               </div>
 
@@ -557,6 +660,7 @@ function BankingSection({ users, loadUsers }) {
           </div>
         </div>
       )}
+      {bankToast && <div className="admin-toast"><i className="fas fa-check-circle" />{bankToast}</div>}
     </>
   );
 }
@@ -572,6 +676,8 @@ function TradingSection({ users }) {
   const [showTradeModal, setShowTradeModal] = useState(false);
   const [showCloseModal, setShowCloseModal] = useState(null);
   const [toast, setToast] = useState('');
+  const [confirmDeleteTrade, setConfirmDeleteTrade] = useState(null); // { trade, tableType }
+  const [deleting, setDeleting] = useState(false);
 
   const showToast = useCallback((msg) => {
     setToast(msg);
@@ -606,6 +712,21 @@ function TradingSection({ users }) {
   const handleCloseSuccess = () => {
     loadTrades(); refreshUser();
     showToast('Trade closed and profit credited!');
+  };
+
+  const handleDeleteTrade = async () => {
+    if (!confirmDeleteTrade) return;
+    setDeleting(true);
+    const { trade, tableType } = confirmDeleteTrade;
+    const res = await SynoxDB.adminDeleteTrade(trade.id, tableType, trade);
+    setDeleting(false);
+    setConfirmDeleteTrade(null);
+    if (res.success) {
+      loadTrades(); refreshUser();
+      showToast('Trade deleted and balance adjusted.');
+    } else {
+      showToast('Error deleting trade: ' + res.error);
+    }
   };
 
   const filtered = users.filter(u =>
@@ -749,6 +870,13 @@ function TradingSection({ users }) {
                 <button className="admin-btn admin-btn-green" onClick={() => setShowCloseModal(trade)}>
                   <i className="fas fa-flag-checkered" />Close &amp; Settle
                 </button>
+                <button
+                  className="admin-btn"
+                  style={{ background: 'rgba(239,68,68,0.15)', color: 'var(--admin-red)', border: '1px solid rgba(239,68,68,0.3)' }}
+                  onClick={() => setConfirmDeleteTrade({ trade, tableType: 'open_trades' })}
+                >
+                  <i className="fas fa-trash-alt" />Delete
+                </button>
               </div>
             </div>
           ))
@@ -782,6 +910,15 @@ function TradingSection({ users }) {
                 <div className="admin-trade-stat"><label>Placed</label><span style={{ fontSize: '0.75rem' }}>{fmtDate(trade.placed_at)}</span></div>
                 <div className="admin-trade-stat"><label>Closed</label><span style={{ fontSize: '0.75rem' }}>{fmtDate(trade.closed_at)}</span></div>
               </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
+                <button
+                  className="admin-btn"
+                  style={{ background: 'rgba(239,68,68,0.15)', color: 'var(--admin-red)', border: '1px solid rgba(239,68,68,0.3)', fontSize: '0.78rem', padding: '6px 14px' }}
+                  onClick={() => setConfirmDeleteTrade({ trade, tableType: 'closed_trades' })}
+                >
+                  <i className="fas fa-trash-alt" />Delete Trade
+                </button>
+              </div>
             </div>
           ))
         )}
@@ -794,6 +931,51 @@ function TradingSection({ users }) {
         {/* Modals */}
         {showTradeModal && <PlaceTradeModal user={selectedUser} onClose={() => setShowTradeModal(false)} onSuccess={handleTradeSuccess} />}
         {showCloseModal && <CloseTradeModal trade={showCloseModal} onClose={() => setShowCloseModal(null)} onSuccess={handleCloseSuccess} />}
+
+        {/* Delete Confirmation Modal */}
+        {confirmDeleteTrade && (
+          <div className="admin-modal-overlay" onClick={() => setConfirmDeleteTrade(null)}>
+            <div className="admin-modal" style={{ maxWidth: 420 }} onClick={e => e.stopPropagation()}>
+              <div className="admin-modal-header">
+                <div>
+                  <div className="admin-modal-title" style={{ color: 'var(--admin-red)' }}><i className="fas fa-exclamation-triangle me-2" />Delete Trade</div>
+                  <div className="admin-modal-sub">{confirmDeleteTrade.trade.asset_pair} — {confirmDeleteTrade.trade.direction}</div>
+                </div>
+                <button className="admin-drawer-close" onClick={() => setConfirmDeleteTrade(null)}><i className="fas fa-times" /></button>
+              </div>
+              <div className="admin-modal-body">
+                <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 12, padding: '14px 16px', marginBottom: 16 }}>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--admin-text)', marginBottom: 10 }}>
+                    Are you sure you want to delete this trade? This action <strong>cannot be undone</strong>.
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: '0.82rem' }}>
+                    <span style={{ color: 'var(--admin-text-muted)' }}>Pair: <strong style={{ color: 'var(--admin-text)' }}>{confirmDeleteTrade.trade.asset_pair}</strong></span>
+                    <span style={{ color: 'var(--admin-text-muted)' }}>Amount: <strong style={{ color: 'var(--admin-red)' }}>-${fmt(confirmDeleteTrade.trade.amount_usd)}</strong></span>
+                    <span style={{ color: 'var(--admin-text-muted)' }}>Type: <strong style={{ color: 'var(--admin-text)' }}>{confirmDeleteTrade.tableType === 'open_trades' ? 'Open' : 'Closed'}</strong></span>
+                    {confirmDeleteTrade.tableType === 'closed_trades' && (
+                      <span style={{ color: 'var(--admin-text-muted)' }}>Profit reversed: <strong style={{ color: 'var(--admin-red)' }}>-${fmt(confirmDeleteTrade.trade.profit || 0)}</strong></span>
+                    )}
+                  </div>
+                </div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--admin-text-muted)' }}>
+                  <i className="fas fa-info-circle me-1" />
+                  The trade amount{confirmDeleteTrade.tableType === 'closed_trades' ? ' and profit' : ''} will be deducted from the user's trading balance.
+                </div>
+              </div>
+              <div className="admin-modal-footer">
+                <button className="admin-btn admin-btn-ghost" onClick={() => setConfirmDeleteTrade(null)}>Cancel</button>
+                <button
+                  className="admin-btn"
+                  style={{ background: 'var(--admin-red)', color: '#fff' }}
+                  onClick={handleDeleteTrade}
+                  disabled={deleting}
+                >
+                  {deleting ? <><i className="fas fa-circle-notch fa-spin" /> Deleting…</> : <><i className="fas fa-trash-alt me-1" />Confirm Delete</>}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Toast */}
         {toast && <div className="admin-toast"><i className="fas fa-check-circle" />{toast}</div>}
