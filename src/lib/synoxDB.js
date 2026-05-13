@@ -648,6 +648,132 @@ export const SynoxDB = {
   },
 
   // ─────────────────────────────────────────────────────────
+  // BANK TRANSFERS (Approval Workflow)
+  // ─────────────────────────────────────────────────────────
+  addPendingTransfer: async (userId, amount, description, transferDetails) => {
+    // 1. Create a "Pending" transaction in the history so the user sees it
+    const tx = await SynoxDB.addTransaction(userId, 'debit', amount, `[PENDING] ${description}`, { is_pending: true });
+
+    // 2. Add to pending_deposits table (reusing it for bank transfers)
+    const { data, error } = await supabase
+      .from('pending_deposits')
+      .insert({
+        user_id: userId,
+        amount: parseFloat(amount),
+        asset: 'BANK_TRANSFER', // Special asset type for bank transfers
+        receipt: JSON.stringify({ ...transferDetails, transaction_id: tx?.id, description }),
+        status: 'pending',
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('addPendingTransfer error:', error);
+      return null;
+    }
+
+    triggerUpdate();
+    return data;
+  },
+
+  getAllPendingTransfers: async () => {
+    const { data, error } = await supabase
+      .from('pending_deposits')
+      .select('*')
+      .eq('asset', 'BANK_TRANSFER')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('getAllPendingTransfers error:', error);
+      return [];
+    }
+    return data || [];
+  },
+
+  approveBankTransfer: async (transferId) => {
+    const { data: transfer, error: fetchError } = await supabase
+      .from('pending_deposits')
+      .select('*')
+      .eq('id', transferId)
+      .single();
+
+    if (fetchError || !transfer) return { success: false, error: 'Transfer not found' };
+    
+    const details = JSON.parse(transfer.receipt);
+    
+    // 1. Update the transfer status
+    await supabase.from('pending_deposits').update({
+      status: 'accepted',
+      processed_at: new Date().toISOString()
+    }).eq('id', transferId);
+
+    // 2. Update the transaction description to remove [PENDING]
+    if (details.transaction_id) {
+      await supabase.from('transactions')
+        .update({ description: details.description })
+        .eq('id', details.transaction_id);
+    }
+
+    // 3. Notify user
+    await SynoxDB.addNotification(
+      transfer.user_id,
+      'Bank Transfer Approved',
+      `Your transfer of $${transfer.amount.toLocaleString()} to ${details.recipientName || 'recipient'} has been approved and processed.`,
+      'bank'
+    );
+
+    triggerUpdate();
+    return { success: true };
+  },
+
+  declineBankTransfer: async (transferId, reason) => {
+    const { data: transfer, error: fetchError } = await supabase
+      .from('pending_deposits')
+      .select('*')
+      .eq('id', transferId)
+      .single();
+
+    if (fetchError || !transfer) return { success: false, error: 'Transfer not found' };
+
+    const details = JSON.parse(transfer.receipt);
+    const rejectReason = reason || 'Security verification failed';
+
+    // 1. Update the transfer status
+    await supabase.from('pending_deposits').update({
+      status: 'rejected',
+      reject_reason: rejectReason,
+      processed_at: new Date().toISOString()
+    }).eq('id', transferId);
+
+    // 2. Refund the user
+    const user = await SynoxDB.getUserById(transfer.user_id);
+    if (user) {
+      const newBalance = user.balance + transfer.amount;
+      await SynoxDB.updateUser(user.id, { balance: newBalance });
+    }
+
+    // 3. Update the transaction status to [FAILED]
+    if (details.transaction_id) {
+      await supabase.from('transactions')
+        .update({ description: `[FAILED] ${details.description} (Reason: ${rejectReason})` })
+        .eq('id', details.transaction_id);
+    }
+
+    // 4. Notify user
+    await SynoxDB.addNotification(
+      transfer.user_id,
+      'Bank Transfer Declined',
+      `Your transfer of $${transfer.amount.toLocaleString()} was declined. Reason: ${rejectReason}. Your funds have been returned to your balance.`,
+      'bank'
+    );
+
+    triggerUpdate();
+    return { success: true };
+  },
+
+  // ─────────────────────────────────────────────────────────
   // ADMIN — UPDATE USER BALANCE (Bank + Crypto)
   // ─────────────────────────────────────────────────────────
   adminUpdateUserBalance: async (userId, { bankBalance, cryptoBalances } = {}) => {

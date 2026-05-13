@@ -102,13 +102,18 @@ const TransfersPage = () => {
         ? `Internal Transfer to ${recipientName}`
         : `International Wire to ${recipientName}`;
       
-      const tx = await SynoxDB.addTransaction(user.id, 'debit', totalDebit, desc);
+      const tx = await SynoxDB.addPendingTransfer(
+        user.id,
+        totalDebit,
+        desc,
+        activeTab === 'internal' ? internalForm : intlForm
+      );
       
       // Add BANK notification
       await SynoxDB.addNotification(
         user.id,
-        activeTab === 'internal' ? 'Internal Transfer Sent' : 'International Wire Sent',
-        `You sent $${amount.toLocaleString(undefined, { minimumFractionDigits: 2 })} to ${recipientName}.${intlFee > 0 ? ` A wire fee of $${intlFee.toFixed(2)} was applied.` : ''}`,
+        activeTab === 'internal' ? 'Internal Transfer Initiated' : 'International Wire Initiated',
+        `Your transfer of $${amount.toLocaleString(undefined, { minimumFractionDigits: 2 })} to ${recipientName} is pending admin approval.`,
         'bank'
       );
 
@@ -161,7 +166,7 @@ const TransfersPage = () => {
                 {step === 2 && 'Review your transfer details'}
                 {step === 3 && 'Enter your Course of Transfer (COT) code'}
                 {step === 4 && 'Please wait while we process your transfer'}
-                {step === 5 && 'Your transfer has been successfully processed'}
+                {step === 5 && 'Your transfer is being processed and awaits approval'}
               </p>
             </div>
 
@@ -482,13 +487,13 @@ const TransfersPage = () => {
                       </div>
                     </div>
 
-                    <h2 className="fw-bold mb-2" style={{ color: BRAND_BLUE, fontSize: 'clamp(1.3rem, 5vw, 1.75rem)' }}>Transfer Successful</h2>
-                    <p className="text-muted mb-4">Your funds have been securely sent and the transaction has been recorded.</p>
+                    <h2 className="fw-bold mb-2" style={{ color: BRAND_BLUE, fontSize: 'clamp(1.3rem, 5vw, 1.75rem)' }}>Transfer Initiated</h2>
+                    <p className="text-muted mb-4">Your transfer has been securely initiated and is now <strong>pending administrator approval</strong>. You will be notified once it is processed.</p>
 
                     <div className="bg-light rounded-4 p-3 p-sm-4 text-start mb-4 shadow-inner">
                       <div className="d-flex justify-content-between mb-3 pb-2 border-bottom flex-wrap gap-1">
                         <span className="text-muted small fw-bold text-uppercase">Status</span>
-                        <span className="badge rounded-pill bg-success px-3 py-2 fw-bold" style={{ fontSize: '0.7rem' }}>Completed</span>
+                        <span className="badge rounded-pill bg-warning text-dark px-3 py-2 fw-bold" style={{ fontSize: '0.7rem' }}>Pending Approval</span>
                       </div>
                       <div className="d-flex justify-content-between mb-3 pb-2 border-bottom flex-wrap gap-1">
                         <span className="text-muted small fw-bold text-uppercase">Transaction ID</span>

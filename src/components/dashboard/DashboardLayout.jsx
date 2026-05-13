@@ -191,7 +191,44 @@ const DashboardLayout = ({ children, sidebarOverride, onNotificationClick, custo
         </nav>
 
         <div className="container-fluid pe-3 p-md-4">
-          {children}
+          {user.status === 'Frozen' ? (
+            <div className="d-flex flex-column align-items-center justify-content-center text-center p-4 p-md-5" style={{ minHeight: '60vh' }}>
+              <div className="rounded-circle bg-danger bg-opacity-10 d-flex align-items-center justify-content-center mb-4" style={{ width: '100px', height: '100px' }}>
+                <i className="fas fa-user-lock text-danger" style={{ fontSize: '3rem' }}></i>
+              </div>
+              <h2 className="fw-bold text-dark mb-3">Account Restricted</h2>
+              <p className="text-muted mb-4 mx-auto" style={{ maxWidth: '500px', fontSize: '1.1rem' }}>
+                Your account has been temporarily suspended due to security protocols or administrative requirements. Access to all banking and trading features is currently restricted.
+              </p>
+              <div className="alert alert-warning border-0 shadow-sm mb-5 text-start" style={{ borderRadius: '15px' }}>
+                <div className="d-flex">
+                  <i className="fas fa-info-circle fs-4 me-3 mt-1"></i>
+                  <div>
+                    <h6 className="fw-bold mb-1">What should I do?</h6>
+                    <p className="mb-0 small">Please contact our global support team or your private relationship manager to verify your identity and resolve any pending requirements.</p>
+                  </div>
+                </div>
+              </div>
+              <div className="d-flex gap-3">
+                <button 
+                  className="btn btn-primary px-4 py-2 fw-bold" 
+                  style={{ background: '#4361ee', border: 'none', borderRadius: '10px' }}
+                  onClick={() => { if(window.Tawk_API){ window.Tawk_API.showWidget(); window.Tawk_API.maximize(); } }}
+                >
+                  <i className="fas fa-headset me-2"></i>Contact Support
+                </button>
+                <button 
+                  className="btn btn-outline-danger px-4 py-2 fw-bold" 
+                  style={{ borderRadius: '10px' }}
+                  onClick={handleLogout}
+                >
+                  <i className="fas fa-sign-out-alt me-2"></i>Logout
+                </button>
+              </div>
+            </div>
+          ) : (
+            children
+          )}
         </div>
       </div>
     </div>

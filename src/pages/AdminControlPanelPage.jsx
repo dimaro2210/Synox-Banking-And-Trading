@@ -481,6 +481,30 @@ function BankingSection({ users, loadUsers }) {
                     <i className="fas fa-circle" style={{ fontSize: '0.45rem' }} />{selectedUser.status || 'Active'}
                   </span>
                 </div>
+                <div style={{ marginLeft: 'auto' }}>
+                  <button 
+                    className={`admin-btn ${selectedUser.status === 'Frozen' ? 'admin-btn-green' : 'admin-btn-red'}`}
+                    style={selectedUser.status !== 'Frozen' ? { background: 'var(--admin-red)', color: '#fff' } : {}}
+                    onClick={async () => {
+                      const newStatus = selectedUser.status === 'Frozen' ? 'Active' : 'Frozen';
+                      const ok = await SynoxDB.updateUser(selectedUser.id, { status: newStatus });
+                      if (ok) {
+                        await SynoxDB.addNotification(
+                          selectedUser.id,
+                          newStatus === 'Frozen' ? 'Account Restricted' : 'Account Reinstated',
+                          newStatus === 'Frozen' 
+                            ? 'Your account has been temporarily restricted by the security department. Please contact support for more information.'
+                            : 'The restriction on your account has been lifted. You can now perform transactions normally.',
+                          'bank'
+                        );
+                        refreshSelectedUser(selectedUser.id);
+                      }
+                    }}
+                  >
+                    <i className={`fas fa-${selectedUser.status === 'Frozen' ? 'unlock' : 'lock'} me-2`} />
+                    {selectedUser.status === 'Frozen' ? 'Unfreeze Account' : 'Freeze Account'}
+                  </button>
+                </div>
               </div>
 
               {/* Account Info */}
@@ -1229,6 +1253,179 @@ function DepositsSection({ users, marketPrices }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   TRANSFERS SECTION
+   Reuses logic from SynoxDB.getAllPendingTransfers
+═══════════════════════════════════════════════════════════════ */
+function TransfersSection({ users }) {
+  const [transfers, setTransfers] = useState([]);
+  const [selectedTransfer, setSelectedTransfer] = useState(null);
+  const [toast, setToast] = useState('');
+  const [rejectReason, setRejectReason] = useState('');
+  const [isRejecting, setIsRejecting] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(''), 3500);
+  };
+
+  const loadTransfers = async () => {
+    setLoading(true);
+    const data = await SynoxDB.getAllPendingTransfers();
+    setTransfers(data);
+    setLoading(false);
+  };
+
+  useEffect(() => { loadTransfers(); }, []);
+
+  const handleApprove = async (transferId) => {
+    const res = await SynoxDB.approveBankTransfer(transferId);
+    if (res.success) {
+      showToast('Transfer approved successfully.');
+      setSelectedTransfer(null);
+      loadTransfers();
+    } else {
+      alert(res.error || 'Failed to approve transfer.');
+    }
+  };
+
+  const handleDecline = async (transferId) => {
+    if (!rejectReason) {
+      alert("Please provide a reason for declining.");
+      return;
+    }
+    const res = await SynoxDB.declineBankTransfer(transferId, rejectReason);
+    if (res.success) {
+      showToast('Transfer declined and funds refunded.');
+      setIsRejecting(false);
+      setRejectReason('');
+      setSelectedTransfer(null);
+      loadTransfers();
+    } else {
+      alert(res.error || 'Failed to decline transfer.');
+    }
+  };
+
+  const getUser = (id) => users.find(u => u.id === id) || {};
+
+  return (
+    <>
+      <div className="admin-table-wrapper">
+        <div className="admin-table-header">
+          <div>
+            <div className="admin-table-title">Pending Bank Transfers</div>
+            <div className="admin-table-sub">Review and approve user bank transfers</div>
+          </div>
+          <button className="admin-btn admin-btn-ghost" onClick={loadTransfers} disabled={loading}>
+            <i className={`fas fa-sync-alt ${loading ? 'fa-spin' : ''} me-1`} /> Refresh
+          </button>
+        </div>
+        <div style={{ overflowX: 'auto' }}>
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Amount</th>
+                <th>Description</th>
+                <th>Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {transfers.length === 0 ? (
+                <tr><td colSpan={5}><div className="admin-empty"><i className="fas fa-university" /><p>No pending bank transfers</p></div></td></tr>
+              ) : transfers.map(t => {
+                const u = getUser(t.user_id);
+                const details = JSON.parse(t.receipt || '{}');
+                return (
+                  <tr key={t.id}>
+                    <td>
+                      <div className="admin-user-cell">
+                        <div className="admin-avatar" style={{ overflow: 'hidden' }}>
+                          {u.profile_picture ? <img src={u.profile_picture} alt="User" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initials(u.full_name)}
+                        </div>
+                        <div>
+                          <div className="admin-user-cell-name">{u.full_name || 'Unknown User'}</div>
+                          <div className="admin-user-cell-email">{u.email || t.user_id}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td><strong>${fmt(t.amount)}</strong></td>
+                    <td><span className="text-muted small">{details.description || 'Bank Transfer'}</span></td>
+                    <td style={{ fontSize: '0.8rem' }}>{new Date(t.created_at).toLocaleString()}</td>
+                    <td>
+                      <button className="admin-btn admin-btn-gold" style={{ padding: '6px 12px', fontSize: '0.75rem' }} onClick={() => setSelectedTransfer(t)}>
+                        View Details
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Review Modal */}
+      {selectedTransfer && (
+        <div className="admin-modal-overlay" onClick={() => { setSelectedTransfer(null); setIsRejecting(false); }}>
+          <div className="admin-modal" style={{ maxWidth: 550 }} onClick={e => e.stopPropagation()}>
+            <div className="admin-modal-header">
+              <div>
+                <div className="admin-modal-title">Transfer Details</div>
+                <div className="admin-modal-sub">Amount: ${fmt(selectedTransfer.amount)}</div>
+              </div>
+              <button className="admin-drawer-close" onClick={() => { setSelectedTransfer(null); setIsRejecting(false); }}><i className="fas fa-times" /></button>
+            </div>
+            <div className="admin-modal-body">
+              <div className="bg-light p-3 rounded-4 border mb-4">
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--admin-text-muted)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Recipient Information:</div>
+                {(() => {
+                  const details = JSON.parse(selectedTransfer.receipt || '{}');
+                  return (
+                    <div className="admin-detail-grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
+                      <div className="admin-detail-item"><label>Recipient Name</label><p>{details.recipientName || '—'}</p></div>
+                      {details.recipientAccount && <div className="admin-detail-item"><label>Account Number</label><p>{details.recipientAccount}</p></div>}
+                      {details.recipientBank && <div className="admin-detail-item"><label>Recipient Bank</label><p>{details.recipientBank}</p></div>}
+                      {details.recipientCountry && <div className="admin-detail-item"><label>Country</label><p>{details.recipientCountry}</p></div>}
+                      {details.swift && <div className="admin-detail-item"><label>SWIFT/BIC</label><p>{details.swift}</p></div>}
+                      {details.iban && <div className="admin-detail-item"><label>IBAN</label><p>{details.iban}</p></div>}
+                      {details.purpose && <div className="admin-detail-item"><label>Purpose</label><p>{details.purpose}</p></div>}
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {isRejecting ? (
+                <div style={{ background: 'var(--admin-red-dim)', padding: 20, borderRadius: 16, border: '1px solid rgba(239,68,68,0.2)' }}>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--admin-red)', marginBottom: 10, textTransform: 'uppercase' }}>Reason for Declining:</label>
+                  <input type="text" className="admin-form-input" style={{ borderColor: 'rgba(239,68,68,0.3)', marginBottom: 14 }} value={rejectReason} onChange={e => setRejectReason(e.target.value)} placeholder="e.g. Invalid account details, Suspicious activity" autoFocus />
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <button className="admin-btn" style={{ background: 'var(--admin-red)', color: '#fff', flex: 1 }} onClick={() => handleDecline(selectedTransfer.id)}>Confirm Decline</button>
+                    <button className="admin-btn admin-btn-ghost" onClick={() => setIsRejecting(false)}>Cancel</button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
+                  <button className="admin-btn admin-btn-ghost" style={{ flex: 1, color: 'var(--admin-red)', borderColor: 'rgba(239,68,68,0.2)' }} onClick={() => setIsRejecting(true)}>
+                    <i className="fas fa-times me-1" /> Decline
+                  </button>
+                  <button className="admin-btn admin-btn-gold" style={{ flex: 2 }} onClick={() => handleApprove(selectedTransfer.id)}>
+                    <i className="fas fa-check me-1" /> Approve & Process
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {toast && <div className="admin-toast"><i className="fas fa-check-circle" />{toast}</div>}
+    </>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
    NOTIFICATIONS SECTION
 ═══════════════════════════════════════════════════════════════ */
 function NotificationsSection({ users }) {
@@ -1388,7 +1585,8 @@ export default function AdminControlPanelPage() {
 
   const navItems = [
     { id: 'banking',   icon: 'fa-university',     label: 'Banking',        sub: 'User Accounts' },
-    { id: 'trading',   icon: 'fa-chart-line', label: 'Trading',     sub: 'Crypto Investment' },
+    { id: 'transfers', icon: 'fa-exchange-alt',   label: 'Transfers',      sub: 'Approve Payments' },
+    { id: 'trading',   icon: 'fa-chart-line',     label: 'Trading',        sub: 'Crypto Investment' },
     { id: 'deposits',  icon: 'fa-arrow-down',     label: 'Deposits',       sub: 'Review Pending' },
     { id: 'notifications', icon: 'fa-bell',       label: 'Notifications',  sub: 'Manage Alerts' }
   ];
@@ -1484,6 +1682,8 @@ export default function AdminControlPanelPage() {
 
           ) : activeSection === 'trading' ? (
             <TradingSection users={users} key={activeSection} />
+          ) : activeSection === 'transfers' ? (
+            <TransfersSection users={users} key={activeSection} />
           ) : activeSection === 'deposits' ? (
             <DepositsSection users={users} marketPrices={marketPrices} key={activeSection} />
           ) : (
