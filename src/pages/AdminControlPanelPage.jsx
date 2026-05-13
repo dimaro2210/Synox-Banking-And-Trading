@@ -1229,6 +1229,108 @@ function DepositsSection({ users, marketPrices }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   NOTIFICATIONS SECTION
+═══════════════════════════════════════════════════════════════ */
+function NotificationsSection({ users }) {
+  const [notifications, setNotifications] = useState([]);
+  const [toast, setToast] = useState('');
+  const [isDeleting, setIsDeleting] = useState(null);
+
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(''), 3500);
+  };
+
+  const loadNotifications = async () => {
+    const data = await SynoxDB.getAllNotificationsAdmin();
+    setNotifications(data);
+  };
+
+  useEffect(() => { loadNotifications(); }, []);
+
+  const handleDelete = async (id) => {
+    setIsDeleting(id);
+    await SynoxDB.deleteNotification(id);
+    showToast('Notification deleted successfully.');
+    loadNotifications();
+    setIsDeleting(null);
+  };
+
+  const getUser = (id) => users.find(u => u.id === id) || {};
+
+  return (
+    <>
+      <div className="admin-table-wrapper">
+        <div className="admin-table-header">
+          <div>
+            <div className="admin-table-title">System Notifications</div>
+            <div className="admin-table-sub">Manage alerts sent to users</div>
+          </div>
+        </div>
+        <div style={{ overflowX: 'auto' }}>
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Notification</th>
+                <th>Type</th>
+                <th>Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {notifications.length === 0 ? (
+                <tr><td colSpan={5}><div className="admin-empty"><i className="fas fa-bell-slash" /><p>No notifications found</p></div></td></tr>
+              ) : notifications.map(n => {
+                const u = getUser(n.user_id);
+                return (
+                  <tr key={n.id}>
+                    <td>
+                      <div className="admin-user-cell">
+                        <div className="admin-avatar" style={{ overflow: 'hidden' }}>
+                          {u.profile_picture ? <img src={u.profile_picture} alt="User" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initials(u.full_name)}
+                        </div>
+                        <div>
+                          <div className="admin-user-cell-name">{u.full_name || 'Unknown User'}</div>
+                          <div className="admin-user-cell-email">{u.email || n.user_id}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <strong style={{ color: 'var(--admin-text)' }}>{n.title}</strong>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--admin-text-muted)', maxWidth: 300, whiteSpace: 'normal', lineHeight: '1.4', marginTop: 4 }}>
+                        {n.description}
+                      </div>
+                    </td>
+                    <td>
+                      <span className={`admin-status ${n.type === 'crypto' ? 'gold' : 'blue'}`}>
+                        {n.type === 'crypto' ? 'Crypto' : 'Bank'}
+                      </span>
+                    </td>
+                    <td style={{ fontSize: '0.8rem' }}>{new Date(n.created_at).toLocaleString()}</td>
+                    <td>
+                      <button 
+                        className="admin-btn" 
+                        style={{ background: 'var(--admin-red-dim)', color: 'var(--admin-red)', padding: '6px 12px', fontSize: '0.75rem', borderColor: 'rgba(239,68,68,0.2)' }} 
+                        onClick={() => { if(window.confirm('Are you sure you want to delete this notification?')) handleDelete(n.id); }}
+                        disabled={isDeleting === n.id}
+                      >
+                        {isDeleting === n.id ? <i className="fas fa-circle-notch fa-spin" /> : <><i className="fas fa-trash me-1" /> Delete</>}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {toast && <div className="admin-toast"><i className="fas fa-info-circle" />{toast}</div>}
+    </>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
    MAIN ADMIN CONTROL PANEL
 ═══════════════════════════════════════════════════════════════ */
 export default function AdminControlPanelPage() {
@@ -1287,7 +1389,8 @@ export default function AdminControlPanelPage() {
   const navItems = [
     { id: 'banking',   icon: 'fa-university',     label: 'Banking',        sub: 'User Accounts' },
     { id: 'trading',   icon: 'fa-chart-line', label: 'Trading',     sub: 'Crypto Investment' },
-    { id: 'deposits',  icon: 'fa-arrow-down',     label: 'Deposits',       sub: 'Review Pending' }
+    { id: 'deposits',  icon: 'fa-arrow-down',     label: 'Deposits',       sub: 'Review Pending' },
+    { id: 'notifications', icon: 'fa-bell',       label: 'Notifications',  sub: 'Manage Alerts' }
   ];
 
   return (
@@ -1381,8 +1484,10 @@ export default function AdminControlPanelPage() {
 
           ) : activeSection === 'trading' ? (
             <TradingSection users={users} key={activeSection} />
-          ) : (
+          ) : activeSection === 'deposits' ? (
             <DepositsSection users={users} marketPrices={marketPrices} key={activeSection} />
+          ) : (
+            <NotificationsSection users={users} key={activeSection} />
           )}
         </div>
       </main>

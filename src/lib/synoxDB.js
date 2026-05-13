@@ -361,6 +361,26 @@ export const SynoxDB = {
     }
   },
 
+  getAllNotificationsAdmin: async () => {
+    const { data } = await supabase
+      .from('notifications')
+      .select('*')
+      .order('created_at', { ascending: false });
+    return data || [];
+  },
+
+  deleteNotification: async (notificationId) => {
+    const { error } = await supabase
+      .from('notifications')
+      .delete()
+      .eq('id', notificationId);
+    
+    if (!error && typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('synox_updated'));
+    }
+    return !error;
+  },
+
   // ─────────────────────────────────────────────────────────
   // CRYPTO BALANCES
   // ─────────────────────────────────────────────────────────
