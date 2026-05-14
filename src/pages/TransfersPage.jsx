@@ -169,7 +169,7 @@ const TransfersPage = () => {
                 {step === 1 && 'Enter recipient details and amount'}
                 {step === 2 && 'Review your transfer details'}
                 {step === 3 && 'Enter your Course of Transfer (COT) code'}
-                {step === 4 && 'Please wait while we process your transfer'}
+                {step === 4 && ''}
                 {step === 5 && 'Your transfer is being processed and awaits approval'}
               </p>
             </div>
@@ -477,8 +477,7 @@ const TransfersPage = () => {
                 {step === 4 && (
                   <div className="text-center py-5 animate__animated animate__fadeIn">
                     <div className="spinner-border mb-4" style={{ width: '3.5rem', height: '3.5rem', color: BRAND_BLUE, borderWidth: '3px' }} role="status"></div>
-                    <h4 className="fw-bold mb-2" style={{ color: BRAND_BLUE }}>Processing Transfer</h4>
-                    <p className="text-muted">Verifying COT code and initiating secure transfer...</p>
+                    
                   </div>
                 )}
 
@@ -492,7 +491,13 @@ const TransfersPage = () => {
                     </div>
 
                     <h2 className="fw-bold mb-2" style={{ color: BRAND_BLUE, fontSize: 'clamp(1.3rem, 5vw, 1.75rem)' }}>Transfer Initiated</h2>
-                    <p className="text-muted mb-4">Your transfer has been securely initiated and is now <strong>pending administrator approval</strong>. You will be notified once it is processed.</p>
+                    <p className="text-muted mb-4">
+                      {activeTab === 'international' ? (
+                        <>Your transaction is <strong>pending</strong> and will be processed within <strong>2-5 business days</strong> after the transfer is initiated.</>
+                      ) : (
+                        <>{activeTab === 'international' ? (<>Your transaction is <strong>pending</strong> and will be processed within <strong>2-5 business days</strong> after the transfer is initiated.</>) : (<>Your transfer has been securely initiated and is now <strong>pending administrator approval</strong>. You will be notified once it is processed.</>)}</>
+                      )}
+                    </p>
 
                     <div className="bg-light rounded-4 p-3 p-sm-4 text-start mb-4 shadow-inner">
                       <div className="d-flex justify-content-between mb-3 pb-2 border-bottom flex-wrap gap-1">
