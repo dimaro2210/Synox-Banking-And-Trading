@@ -10,6 +10,7 @@ const DashboardPage = () => {
   const [formattedDate, setFormattedDate] = useState("Today");
   const [showBalance, setShowBalance] = useState(true);
   const [showAccountModal, setShowAccountModal] = useState(false);
+  const [showFrozenPopup, setShowFrozenPopup] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -49,6 +50,7 @@ const DashboardPage = () => {
   if (!user) return null;
 
   return (
+    <>
     <DashboardLayout>
       <div id="dashboard-section" className="content-section">
         {/* Premium Greeting Section */}
@@ -59,7 +61,7 @@ const DashboardPage = () => {
             <h2 className="mb-0 mt-1 user-full-name-greeting text-muted font-weight-light text-truncate text-start opacity-75 w-100" style={{ fontSize: 'clamp(0.9rem, 3.5vw, 1.25rem)' }}>{user.full_name}</h2>
           </div>
           <div className="greeting-icon-wrapper p-2 p-md-3 bg-light rounded-circle shadow-inner flex-shrink-0 d-flex justify-content-center align-items-center" style={{ width: 'clamp(55px, 14vw, 75px)', height: 'clamp(55px, 14vw, 75px)' }}>
-            <i id="weather-icon" className="fas fa-sun" style={{ fontSize: 'clamp(1.75rem, 6.5vw, 2.5rem)', color: '#FFD700' }}></i>
+            <i id="weather-icon" className={`fas ${user.status === 'Frozen' ? 'fa-user-lock' : 'fa-sun'}`} style={{ fontSize: 'clamp(1.75rem, 6.5vw, 2.5rem)', color: user.status === 'Frozen' ? '#dc3545' : '#FFD700' }}></i>
           </div>
         </div>
 
@@ -82,7 +84,7 @@ const DashboardPage = () => {
                   <small className="text-uppercase opacity-75" style={{ letterSpacing: '1px', fontWeight: 600, fontSize: '0.75rem' }}>Total Available Balance</small>
                   <div className="d-flex align-items-center mt-2">
                     <h2 className="mb-0" style={{ fontWeight: 800, fontSize: '2.2rem', letterSpacing: '-0.5px' }}>
-                      {showBalance ? `$${(user.balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '••••••'}
+                      {user.status === 'Frozen' ? '••••••' : (showBalance ? `$${(user.balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '••••••')}
                     </h2>
                   </div>
                   <p className="mt-3 mb-0 opacity-75 font-monospace" style={{ letterSpacing: '2px', fontSize: '1.2rem' }}>
@@ -90,11 +92,13 @@ const DashboardPage = () => {
                   </p>
                 </div>
                 <div className="d-flex align-items-center" style={{ gap: '20px' }}>
-                  <span onClick={(e) => { e.stopPropagation(); setShowBalance(!showBalance); }} title="Toggle Balance Visibility" style={{ cursor: 'pointer' }}>
-                    <i className={`fas ${showBalance ? 'fa-eye-slash' : 'fa-eye'} text-white fs-3 opacity-75 hover-opacity-100 transition-all`}></i>
-                  </span>
+                  {user.status !== 'Frozen' && (
+                    <span onClick={(e) => { e.stopPropagation(); setShowBalance(!showBalance); }} title="Toggle Balance Visibility" style={{ cursor: 'pointer' }}>
+                      <i className={`fas ${showBalance ? 'fa-eye-slash' : 'fa-eye'} text-white fs-3 opacity-75 hover-opacity-100 transition-all`}></i>
+                    </span>
+                  )}
                   <div className="bg-white bg-opacity-25 p-3 rounded-lg backdrop-blur d-none d-sm-block">
-                    <i className="fas fa-shield-check fs-4 text-white"></i>
+                    <i className={`fas ${user.status === 'Frozen' ? 'fa-lock' : 'fa-shield-check'} fs-4 text-white`}></i>
                   </div>
                 </div>
               </div>
@@ -119,7 +123,18 @@ const DashboardPage = () => {
                   { label: 'Security', icon: 'fa-user-shield', color: '#fd7e14', path: '/dashboard/profile' }
                 ].map(action => (
                   <div key={action.label} className="col-6 d-flex">
-                    <Link to={action.path} className="text-decoration-none w-100">
+                    <div 
+                      className="text-decoration-none w-100" 
+                      style={{ cursor: 'pointer' }}
+                      onClick={(e) => {
+                        if (user.status === 'Frozen' && (action.label === 'Send Money' || action.label === 'Pay Bills')) {
+                          e.preventDefault();
+                          setShowFrozenPopup(true);
+                        } else {
+                          navigate(action.path);
+                        }
+                      }}
+                    >
                       <div className="action-item text-center p-3 h-100 rounded-xl hover-bg-light transition-all border border-transparent hover-border-primary shadow-sm d-flex flex-column align-items-center justify-content-center" style={{ background: '#f8fafc', borderRadius: '16px', minHeight: '110px' }}>
                         <div className="action-icon mx-auto mb-2 d-flex align-items-center justify-content-center bg-white rounded-circle shadow-sm" 
                              style={{ color: action.color, fontSize: '1.2rem', width: '45px', height: '45px' }}>
@@ -127,7 +142,7 @@ const DashboardPage = () => {
                         </div>
                         <span className="small font-weight-bold text-dark d-block" style={{ lineHeight: '1.2' }}>{action.label}</span>
                       </div>
-                    </Link>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -150,7 +165,7 @@ const DashboardPage = () => {
                   <span className="font-weight-bold text-muted ms-2 me-1 fs-5">$</span>
                   <input type="number" className="form-control border-0 bg-transparent shadow-none font-weight-bold fs-5 mb-0 p-1 custom-number-input w-100" placeholder="0.00" style={{ outline: 'none' }} />
                 </div>
-                <button className="btn btn-primary rounded-xl px-0 py-2 shadow-sm d-flex align-items-center justify-content-center transition-all hover-opacity-80 flex-shrink-0" style={{ width: '60px', height: '60px', background: '#002D72', border: 'none' }} onClick={() => navigate('/dashboard/transfers')}>
+                <button className="btn btn-primary rounded-xl px-0 py-2 shadow-sm d-flex align-items-center justify-content-center transition-all hover-opacity-80 flex-shrink-0" style={{ width: '60px', height: '60px', background: '#002D72', border: 'none' }} onClick={() => { if(user.status === 'Frozen') setShowFrozenPopup(true); else navigate('/dashboard/transfers'); }}>
                   <i className="fas fa-paper-plane" style={{ fontSize: '1.4rem' }}></i>
                 </button>
               </div>
@@ -290,6 +305,64 @@ const DashboardPage = () => {
       )}
 
     </DashboardLayout>
+      
+      {/* Account Frozen Bottom Popup */}
+      {showFrozenPopup && (
+        <>
+          <div 
+            className="position-fixed top-0 start-0 w-100 h-100" 
+            style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 3000, backdropFilter: 'blur(4px)' }}
+            onClick={() => setShowFrozenPopup(false)}
+          ></div>
+          <div 
+            className="position-fixed bottom-0 start-0 w-100 bg-white shadow-lg p-4 slide-up" 
+            style={{ 
+              zIndex: 3001, 
+              borderTopLeftRadius: '30px', 
+              borderTopRightRadius: '30px',
+              animation: 'slideUp 0.4s ease-out forwards'
+            }}
+          >
+            <style>
+              {`
+                @keyframes slideUp {
+                  from { transform: translateY(100%); }
+                  to { transform: translateY(0); }
+                }
+              `}
+            </style>
+            <div className="container" style={{ maxWidth: '600px' }}>
+              <div className="text-center mb-3">
+                <div className="mx-auto bg-light mb-3" style={{ width: '50px', height: '6px', borderRadius: '3px' }}></div>
+                <div className="rounded-circle bg-danger bg-opacity-10 d-flex align-items-center justify-content-center mx-auto mb-3" style={{ width: '70px', height: '70px' }}>
+                  <i className="fas fa-user-shield text-danger fs-1"></i>
+                </div>
+                <h3 className="fw-bold mb-2">Account Restricted</h3>
+                <p className="text-muted mb-4">
+                  For your protection, this account has been <strong>frozen for security reasons</strong>. All outgoing transactions are temporarily suspended.
+                </p>
+                <div className="bg-light p-3 rounded-4 text-start mb-4 border border-danger border-opacity-10">
+                  <p className="mb-0 small text-danger fw-bold"><i className="fas fa-info-circle me-2"></i>Further Assistance Required</p>
+                  <p className="mb-0 small text-muted">Please contact our customer live service or your account manager for further assistance and to resolve this restriction.</p>
+                </div>
+                <div className="d-grid gap-2">
+                  <button 
+                    className="btn btn-primary py-3 fw-bold rounded-pill" 
+                    style={{ background: '#002D72', border: 'none' }}
+                    onClick={() => { setShowFrozenPopup(false); if(window.Tawk_API){ window.Tawk_API.showWidget(); window.Tawk_API.maximize(); } }}
+                  >
+                    Contact Live Support
+                  </button>
+                  <button className="btn btn-link text-muted text-decoration-none fw-bold" onClick={() => setShowFrozenPopup(false)}>
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </>
   );
 };
 

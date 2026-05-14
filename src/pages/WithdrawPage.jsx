@@ -12,6 +12,7 @@ const WithdrawPage = () => {
   const [transactionId, setTransactionId] = useState('');
   const [paymentDate, setPaymentDate] = useState('');
   const [marketData, setMarketData] = useState({});
+  const [showFrozenPopup, setShowFrozenPopup] = useState(false);
 
   const navigate = useNavigate();
   const processingFee = 0.00;
@@ -27,6 +28,9 @@ const WithdrawPage = () => {
       if (userId) {
         const userData = await SynoxDB.getUserById(userId);
         setUser(userData);
+        if (userData.status === 'Frozen') {
+          setShowFrozenPopup(true);
+        }
       } else {
         navigate('/login');
       }
@@ -131,6 +135,7 @@ const WithdrawPage = () => {
   );
 
   return (
+    <>
     <DashboardLayout notificationType="crypto" sidebarOverride={cryptoSidebarOverride}>
       <div className="container-fluid py-5">
         <div className="row justify-content-center">
@@ -326,7 +331,7 @@ const WithdrawPage = () => {
                       <button 
                         className="btn btn-lg w-100 py-3 rounded-4 fw-bold shadow-sm"
                         style={{ background: BRAND_BLUE, color: '#fff' }}
-                        onClick={handleConfirm}
+                        onClick={handleRequestWithdrawal}
                       >
                         Confirm Withdrawal <i className="fas fa-check-circle ms-2"></i>
                       </button>
@@ -401,6 +406,64 @@ const WithdrawPage = () => {
         .transition-all { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
       `}</style>
     </DashboardLayout>
+
+    {/* Account Frozen Bottom Popup */}
+      {showFrozenPopup && (
+        <>
+          <div 
+            className="position-fixed top-0 start-0 w-100 h-100" 
+            style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 3000, backdropFilter: 'blur(4px)' }}
+            onClick={() => { setShowFrozenPopup(false); navigate('/dashboard'); }}
+          ></div>
+          <div 
+            className="position-fixed bottom-0 start-0 w-100 bg-white shadow-lg p-4 slide-up" 
+            style={{ 
+              zIndex: 3001, 
+              borderTopLeftRadius: '30px', 
+              borderTopRightRadius: '30px',
+              animation: 'slideUp 0.4s ease-out forwards'
+            }}
+          >
+            <style>
+              {`
+                @keyframes slideUp {
+                  from { transform: translateY(100%); }
+                  to { transform: translateY(0); }
+                }
+              `}
+            </style>
+            <div className="container" style={{ maxWidth: '600px' }}>
+              <div className="text-center mb-3">
+                <div className="mx-auto bg-light mb-3" style={{ width: '50px', height: '6px', borderRadius: '3px' }}></div>
+                <div className="rounded-circle bg-danger bg-opacity-10 d-flex align-items-center justify-content-center mx-auto mb-3" style={{ width: '70px', height: '70px' }}>
+                  <i className="fas fa-user-shield text-danger fs-1"></i>
+                </div>
+                <h3 className="fw-bold mb-2">Withdrawal Restricted</h3>
+                <p className="text-muted mb-4">
+                  For your protection, this account has been <strong>frozen for security reasons</strong>. All outgoing transactions are temporarily suspended.
+                </p>
+                <div className="bg-light p-3 rounded-4 text-start mb-4 border border-danger border-opacity-10">
+                  <p className="mb-0 small text-danger fw-bold"><i className="fas fa-info-circle me-2"></i>Further Assistance Required</p>
+                  <p className="mb-0 small text-muted">Please contact our customer live service or your account manager for further assistance and to resolve this restriction.</p>
+                </div>
+                <div className="d-grid gap-2">
+                  <button 
+                    className="btn btn-primary py-3 fw-bold rounded-pill" 
+                    style={{ background: '#002D72', border: 'none' }}
+                    onClick={() => { setShowFrozenPopup(false); if(window.Tawk_API){ window.Tawk_API.showWidget(); window.Tawk_API.maximize(); } }}
+                  >
+                    Contact Live Support
+                  </button>
+                  <button className="btn btn-link text-muted text-decoration-none fw-bold" onClick={() => { setShowFrozenPopup(false); navigate('/dashboard'); }}>
+                    Back to Dashboard
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </>
   );
 };
 
