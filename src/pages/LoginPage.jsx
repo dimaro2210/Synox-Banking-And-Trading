@@ -28,6 +28,15 @@ const LoginPage = () => {
     try {
       const result = await SynoxDB.authenticateUser(email, password);
       if (result.success) {
+        if (result.user.status === 'Pending') {
+          setError('Your account is still under review. You will be notified once your account has been approved.');
+          return;
+        }
+        if (result.user.status === 'Frozen') {
+          setError('Your account has been restricted. Please contact support.');
+          return;
+        }
+
         setUserData(result.user);
         const otpSent = await SynoxDB.sendOTPEmail(result.user.email);
         if (otpSent && otpSent.success !== false) {

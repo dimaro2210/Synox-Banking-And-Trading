@@ -88,12 +88,14 @@ export const SynoxDB = {
         crypto_wallet: userData.crypto_wallet || null,
         crypto_balances: { BTC: 0, ETH: 0, USDT: 0 },
         account_type: userData.account_type || 'Standard',
-        status: 'Active',
-        profile_picture: null,
+        status: 'Pending',
+        profile_picture: userData.profile_picture || null,
         trading_balance_total: 0,
         trading_balance_profit: 0,
         crypto_enrolled: false,
         documents: userData.documents || {},
+        email_verified: userData.email_verified || false,
+        verification_token: userData.verification_token || null,
         created_at: new Date().toISOString()
       };
 
@@ -145,6 +147,66 @@ export const SynoxDB = {
     }
     triggerUpdate();
     return true;
+  },
+
+  // ─────────────────────────────────────────────────────────
+  // ACCOUNT APPROVALS
+  // ─────────────────────────────────────────────────────────
+  getPendingUsers: async () => {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('status', 'Pending')
+      .order('created_at', { ascending: false });
+    if (error) {
+      console.error('getPendingUsers error:', error);
+      return [];
+    }
+    return data || [];
+  },
+
+  approveUser: async (userId) => {
+    const { error } = await supabase
+      .from('users')
+      .update({ status: 'Active', email_verified: true, updated_at: new Date().toISOString() })
+      .eq('id', userId);
+    
+    if (error) {
+      console.error('approveUser error:', error);
+      return { success: false, error: error.message };
+    }
+
+    await SynoxDB.addNotification(
+      userId,
+      'Account Approved',
+      'Your Synox International account has been verified and approved. You can now login and access all banking features.',
+      'bank'
+    );
+
+    triggerUpdate();
+    return { success: true };
+  },
+
+  rejectUser: async (userId, reason) => {
+    const { error } = await supabase
+      .from('users')
+      .update({ status: 'Rejected', updated_at: new Date().toISOString() })
+      .eq('id', userId);
+    
+    if (error) {
+      console.error('rejectUser error:', error);
+      return { success: false, error: error.message };
+    }
+
+    await SynoxDB.addNotification(
+      userId,
+      'Application Rejected',
+      `Your account application was not approved. Reason: ${reason || 'Verification failed'}.`,
+      'bank'
+    );
+
+    triggerUpdate();
+    return { success: true };
   },
 
   // ─────────────────────────────────────────────────────────

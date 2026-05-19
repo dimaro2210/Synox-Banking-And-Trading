@@ -49,13 +49,7 @@ const RegisterPage = () => {
     return () => { document.body.className = ''; };
   }, []);
 
-  // Countdown → redirect to login
-  useEffect(() => {
-    if (!registrationComplete) return;
-    if (verificationCountdown <= 0) { navigate('/login'); return; }
-    const t = setTimeout(() => setVerificationCountdown(p => p - 1), 1000);
-    return () => clearTimeout(t);
-  }, [registrationComplete, verificationCountdown, navigate]);
+  // Removed countdown effect since account is pending approval
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -120,12 +114,20 @@ const RegisterPage = () => {
         if (userImageFile) {
           profilePicData = await fileToBase64(userImageFile);
         }
+        
+        // Convert ID document to base64
+        const idImageFile = document.getElementById('id_image')?.files[0];
+        let idImageData = null;
+        if (idImageFile) {
+          idImageData = await fileToBase64(idImageFile);
+        }
 
         const registrationData = {
           ...formData,
           document_type: selectedDocType,
-          id_image_uploaded: !!document.getElementById('id_image')?.files[0],
+          id_image_uploaded: !!idImageFile,
           profile_picture: profilePicData,
+          documents: idImageData ? { [selectedDocType || 'id_document']: idImageData } : {},
           email_verified: false,
           verification_token: 'vt-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10)
         };
@@ -178,26 +180,22 @@ const RegisterPage = () => {
                 </div>
 
                 <h3 style={{ fontWeight: 800, color: '#002d72', fontSize: '1.35rem', marginBottom: '10px' }}>
-                  Registration Successful!
+                  Application Submitted!
                 </h3>
                 <p style={{ color: '#8094ae', fontSize: '0.88rem', lineHeight: '1.65', marginBottom: '32px' }}>
-                  Your account is open successfully.<br />
-                  <strong style={{ color: '#1a1a2e' }}>You can now login to your dashboard.</strong>
+                  Your account is currently under review.<br />
+                  <strong style={{ color: '#1a1a2e' }}>Our verification team will review your information and get back to you within 24 hours.</strong>
                 </p>
 
-                {/* Go to Login Button */}
-                <Link to="/login" style={{
+                {/* Return to Home Button */}
+                <Link to="/" style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   width: '100%', height: '50px', borderRadius: '12px',
                   background: '#002D72', color: '#fff', fontWeight: 700, fontSize: '0.92rem',
                   textDecoration: 'none', gap: '8px', transition: 'all 0.3s ease'
                 }}>
-                  Go Back to Login <i className="fas fa-sign-in-alt"></i>
+                  Return to Home <i className="fas fa-home"></i>
                 </Link>
-
-                <p style={{ fontSize: '0.76rem', color: '#8094ae', marginTop: '24px' }}>
-                  Redirecting to login in <strong style={{ color: '#002D72' }}>{verificationCountdown}s</strong>
-                </p>
 
                 <p className="small text-muted mb-0" style={{ marginTop: '20px', fontSize: '0.72rem' }}>
                   <i className="fas fa-lock" style={{ marginRight: '4px' }}></i> 256-bit End-to-End Encryption

@@ -330,6 +330,202 @@ function CloseTradeModal({ trade, onClose, onSuccess }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   APPROVALS SECTION
+═══════════════════════════════════════════════════════════════ */
+function ApprovalsSection({ users, loadUsers }) {
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [toast, setToast] = useState('');
+  const [rejectReason, setRejectReason] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const pendingUsers = users.filter(u => u.status === 'Pending');
+
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3500); };
+
+  const handleApprove = async () => {
+    setIsProcessing(true);
+    const res = await SynoxDB.approveUser(selectedUser.id);
+    setIsProcessing(false);
+    if (res.success) {
+      showToast('Account approved successfully!');
+      setSelectedUser(null);
+      loadUsers();
+    } else {
+      showToast('Failed to approve account.');
+    }
+  };
+
+  const handleReject = async () => {
+    if (!rejectReason) {
+      alert('Please provide a reason for rejection.');
+      return;
+    }
+    setIsProcessing(true);
+    const res = await SynoxDB.rejectUser(selectedUser.id, rejectReason);
+    setIsProcessing(false);
+    if (res.success) {
+      showToast('Account rejected.');
+      setRejectReason('');
+      setSelectedUser(null);
+      loadUsers();
+    } else {
+      showToast('Failed to reject account.');
+    }
+  };
+
+  return (
+    <>
+      <div className="admin-stats-grid">
+        <div className="admin-stat-card">
+          <div className="admin-stat-icon gold"><i className="fas fa-hourglass-half" /></div>
+          <div className="admin-stat-label">Pending Reviews</div>
+          <div className="admin-stat-value gold">{pendingUsers.length}</div>
+        </div>
+      </div>
+
+      <div className="admin-table-wrapper">
+        <div className="admin-table-header">
+          <div>
+            <div className="admin-table-title">Pending Account Approvals</div>
+            <div className="admin-table-sub">Review and verify new user registrations</div>
+          </div>
+        </div>
+        <div style={{ overflowX: 'auto' }}>
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Account Type</th>
+                <th>Date Applied</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pendingUsers.length === 0 ? (
+                <tr><td colSpan={4}><div className="admin-empty"><i className="fas fa-check-circle" /><p>No pending approvals</p></div></td></tr>
+              ) : pendingUsers.map(u => (
+                <tr key={u.id} onClick={() => setSelectedUser(u)}>
+                  <td>
+                    <div className="admin-user-cell">
+                      <div className="admin-avatar" style={{ overflow: 'hidden' }}>
+                        {u.profile_picture ? <img src={u.profile_picture} alt="User" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initials(u.full_name)}
+                      </div>
+                      <div>
+                        <div className="admin-user-cell-name">{u.full_name}</div>
+                        <div className="admin-user-cell-email">{u.email}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>{u.account_type || 'Standard'}</td>
+                  <td style={{ fontSize: '0.8rem' }}>{u.created_at ? new Date(u.created_at).toLocaleString() : '—'}</td>
+                  <td>
+                    <button className="admin-btn admin-btn-gold" style={{ padding: '6px 12px', fontSize: '0.75rem' }} onClick={(e) => { e.stopPropagation(); setSelectedUser(u); }}>
+                      Review
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {selectedUser && (
+        <div className="admin-drawer-overlay" onClick={() => { setSelectedUser(null); setRejectReason(''); }}>
+          <div className="admin-drawer" onClick={e => e.stopPropagation()}>
+            <div className="admin-drawer-header">
+              <div>
+                <div className="admin-drawer-title">{selectedUser.full_name}</div>
+                <div className="admin-drawer-sub">Account Application Review</div>
+              </div>
+              <button className="admin-drawer-close" onClick={() => { setSelectedUser(null); setRejectReason(''); }}><i className="fas fa-times" /></button>
+            </div>
+            <div className="admin-drawer-body">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
+                <div className="admin-profile-avatar" style={{ overflow: 'hidden', width: 80, height: 80 }}>
+                  {selectedUser.profile_picture ? <img src={selectedUser.profile_picture} alt="User" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initials(selectedUser.full_name)}
+                </div>
+                <div>
+                  <div className="admin-profile-name" style={{ fontSize: '1.2rem' }}>{selectedUser.full_name}</div>
+                  <div className="admin-profile-email">{selectedUser.email}</div>
+                  <span className="admin-status" style={{ marginTop: 6, background: 'rgba(245,158,11,0.15)', color: '#d97706' }}>
+                    <i className="fas fa-circle" style={{ fontSize: '0.45rem' }} />Pending Review
+                  </span>
+                </div>
+              </div>
+
+              <div className="admin-detail-section">
+                <div className="admin-detail-section-title"><i className="fas fa-id-card" />Personal Information</div>
+                <div className="admin-detail-grid">
+                  {[
+                    ['Account Type', selectedUser.account_type],
+                    ['Phone', selectedUser.phone],
+                    ['Date of Birth', selectedUser.dob],
+                    ['Gender', selectedUser.gender],
+                    ['Occupation', selectedUser.occupation],
+                    ['Country', selectedUser.country],
+                    ['State', selectedUser.state]
+                  ].map(([label, val]) => val && (
+                    <div className="admin-detail-item" key={label}>
+                      <label>{label}</label>
+                      <p>{val}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="admin-detail-section">
+                <div className="admin-detail-section-title"><i className="fas fa-file-alt" />Identity Documents</div>
+                {selectedUser.documents && Object.keys(selectedUser.documents).length > 0 ? (
+                  <div className="admin-detail-grid" style={{ gridTemplateColumns: '1fr' }}>
+                    {Object.entries(selectedUser.documents).map(([docType, docData]) => (
+                      <div className="admin-detail-item" key={docType} style={{ padding: '16px', border: '1px solid var(--admin-card-border)', borderRadius: '12px' }}>
+                        <label style={{ fontSize: '0.85rem', marginBottom: '8px', color: 'var(--admin-text)' }}>{docType.replace('_', ' ').toUpperCase()}</label>
+                        {typeof docData === 'string' && docData.startsWith('data:image') ? (
+                          <img src={docData} alt={docType} style={{ width: '100%', borderRadius: 8, maxHeight: '300px', objectFit: 'contain', background: '#f8fafc' }} />
+                        ) : (
+                          <p style={{ fontSize: '0.78rem', fontFamily: 'monospace' }}>{typeof docData === 'string' ? docData : JSON.stringify(docData)}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ color: 'var(--admin-text-muted)', fontSize: '0.85rem', textAlign: 'center', padding: '16px 0' }}>
+                    <i className="fas fa-exclamation-circle" style={{ display: 'block', marginBottom: 6, fontSize: '1.5rem', color: 'var(--admin-gold)' }} />
+                    No documents provided
+                  </div>
+                )}
+              </div>
+
+              <div className="admin-detail-section" style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.2)', padding: '16px' }}>
+                <div className="admin-detail-section-title" style={{ color: 'var(--admin-red)' }}><i className="fas fa-times-circle" />Reject Application</div>
+                <input 
+                  type="text" 
+                  className="admin-form-input" 
+                  placeholder="Reason for rejection (e.g. Invalid ID, Document illegible)..." 
+                  value={rejectReason} 
+                  onChange={(e) => setRejectReason(e.target.value)} 
+                />
+                <button className="admin-btn" style={{ marginTop: '10px', background: 'var(--admin-red)', color: '#fff' }} onClick={handleReject} disabled={isProcessing}>
+                  {isProcessing ? <><i className="fas fa-circle-notch fa-spin" /> Processing...</> : <><i className="fas fa-times me-1" />Reject Account</>}
+                </button>
+              </div>
+
+              <div style={{ marginTop: '20px' }}>
+                <button className="admin-btn admin-btn-green" style={{ width: '100%', padding: '14px', fontSize: '1rem', justifyContent: 'center' }} onClick={handleApprove} disabled={isProcessing}>
+                  {isProcessing ? <><i className="fas fa-circle-notch fa-spin" /> Processing...</> : <><i className="fas fa-check-circle me-2" />Approve Account</>}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {toast && <div className="admin-toast"><i className="fas fa-check-circle" />{toast}</div>}
+    </>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
    BANKING SECTION
 ═══════════════════════════════════════════════════════════════ */
 function BankingSection({ users, loadUsers }) {
@@ -1584,6 +1780,7 @@ export default function AdminControlPanelPage() {
   if (!authed) return <AdminGate onAuth={handleAuth} />;
 
   const navItems = [
+    { id: 'approvals', icon: 'fa-user-check',   label: 'Approvals',      sub: 'Account Review' },
     { id: 'banking',   icon: 'fa-university',     label: 'Banking',        sub: 'User Accounts' },
     { id: 'transfers', icon: 'fa-exchange-alt',   label: 'Transfers',      sub: 'Approve Payments' },
     { id: 'trading',   icon: 'fa-chart-line',     label: 'Trading',        sub: 'Crypto Investment' },
@@ -1621,10 +1818,15 @@ export default function AdminControlPanelPage() {
               onClick={() => { setActiveSection(item.id); setIsSidebarOpen(false); loadUsers(); }}
             >
               <i className={`fas ${item.icon}`} />
-              <div>
+              <div style={{ flex: 1 }}>
                 <div>{item.label}</div>
                 <div style={{ fontSize: '0.7rem', fontWeight: 400, opacity: 0.7 }}>{item.sub}</div>
               </div>
+              {item.id === 'approvals' && users.filter(u => u.status === 'Pending').length > 0 && (
+                <div style={{ background: 'var(--admin-gold)', color: '#fff', fontSize: '0.7rem', fontWeight: 700, padding: '2px 6px', borderRadius: '10px' }}>
+                  {users.filter(u => u.status === 'Pending').length}
+                </div>
+              )}
             </button>
           ))}
 
@@ -1677,6 +1879,8 @@ export default function AdminControlPanelPage() {
               <i className="fas fa-circle-notch fa-spin" style={{ fontSize: '2rem', marginBottom: 12, display: 'block', color: 'var(--admin-gold)' }} />
               Loading data…
             </div>
+          ) : activeSection === 'approvals' ? (
+            <ApprovalsSection users={users} loadUsers={loadUsers} />
           ) : activeSection === 'banking' ? (
             <BankingSection users={users} loadUsers={loadUsers} />
 
