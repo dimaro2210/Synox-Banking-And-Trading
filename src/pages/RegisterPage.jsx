@@ -101,6 +101,22 @@ const RegisterPage = () => {
     if (!formData.password || formData.password.length < 6) { setError('Password must be at least 6 characters.'); return; }
 
     setError('');
+    
+    // Grab files NOW while they are still in the DOM
+    const userImageFile = document.getElementById('user_image')?.files[0];
+    const idImageFile = document.getElementById('id_image')?.files[0];
+
+    // Pre-convert to base64 so we don't need the DOM elements after transitioning
+    let profilePicData = null;
+    let idImageData = null;
+    try {
+      if (userImageFile) profilePicData = await fileToBase64(userImageFile);
+      if (idImageFile) idImageData = await fileToBase64(idImageFile);
+    } catch (err) {
+      setError('Error reading uploaded files. Please try again.');
+      return;
+    }
+
     setStepTransitioning(true);
     setTransitionMsg(STEP_MESSAGES.submit);
 
@@ -108,19 +124,6 @@ const RegisterPage = () => {
       setStepTransitioning(false);
       setLoading(true);
       try {
-        // Convert profile picture to base64 for localStorage persistence
-        const userImageFile = document.getElementById('user_image')?.files[0];
-        let profilePicData = null;
-        if (userImageFile) {
-          profilePicData = await fileToBase64(userImageFile);
-        }
-        
-        // Convert ID document to base64
-        const idImageFile = document.getElementById('id_image')?.files[0];
-        let idImageData = null;
-        if (idImageFile) {
-          idImageData = await fileToBase64(idImageFile);
-        }
 
         const registrationData = {
           ...formData,
@@ -317,6 +320,35 @@ const RegisterPage = () => {
                   {step === 2 && (
                     <div className="form-step" id="step-2">
                       <div className="form-section-title">2. Personal Details</div>
+
+                      {/* Profile Picture Upload */}
+                      <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                        <label htmlFor="user_image" style={{ cursor: 'pointer', display: 'inline-block' }}>
+                          <div style={{
+                            width: '100px', height: '100px', borderRadius: '50%',
+                            background: '#f4f6fb', border: '2px dashed #c4cdd8',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            margin: '0 auto 10px', overflow: 'hidden', position: 'relative',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
+                          }}>
+                            {profilePreview ? (
+                              <img src={profilePreview} alt="Profile Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              <i className="fas fa-camera" style={{ fontSize: '1.8rem', color: '#8094ae' }}></i>
+                            )}
+                            {!profilePreview && (
+                              <div style={{
+                                position: 'absolute', bottom: 0, left: 0, right: 0,
+                                background: 'rgba(0, 45, 114, 0.7)', color: '#fff',
+                                fontSize: '0.65rem', padding: '4px 0', fontWeight: 600
+                              }}>Upload</div>
+                            )}
+                          </div>
+                          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#002D72' }}>Profile Picture (Optional)</span>
+                        </label>
+                        <input type="file" id="user_image" name="user_image" accept="image/*" style={{ display: 'none' }} onChange={handleProfilePicChange} />
+                      </div>
+
                       <div className="row">
                         <div className="col-md-6 mb-3">
                           <div className="form-group form-floating">

@@ -356,10 +356,11 @@ const CryptoHubPage = () => {
   const handleActivate = async () => {
     setLoading(true);
     setTimeout(async () => {
+      const updatedFullName = (firstName + ' ' + lastName).trim() || user.full_name;
       await SynoxDB.updateUser(user.id, {
         crypto_wallet: walletAddress || '0x' + Math.random().toString(16).slice(2, 42),
-        first_name: firstName,
-        last_name: lastName
+        crypto_enrolled: true,
+        full_name: updatedFullName
       });
       await loadUserData();
       setIsActivated(true);

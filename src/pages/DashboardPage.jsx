@@ -52,161 +52,112 @@ const DashboardPage = () => {
   return (
     <>
     <DashboardLayout>
-      <div id="dashboard-section" className="content-section">
+      <div id="dashboard-section" className="content-section animate-fade-in-up">
         {/* Premium Greeting Section */}
-        <div className="greeting-section mb-4 p-3 p-md-4 rounded-xl shadow-sm bg-white border border-light d-flex flex-row flex-nowrap justify-content-between align-items-center">
-          <div className="greeting-content pe-2 d-flex flex-column align-items-start text-start w-100" style={{ overflow: 'hidden' }}>
-            <p className="text-muted mb-1 font-weight-bold d-block w-100" id="greeting-date" style={{ fontSize: 'clamp(0.75rem, 2.5vw, 0.875rem)', margin: 0 }}>{formattedDate}</p>
-            <h1 className="mb-0 fw-bolder font-weight-bolder text-truncate text-start mt-1 w-100" id="greeting-text" style={{ color: '#002D72', fontSize: 'clamp(1.5rem, 5.5vw, 2.2rem)', fontWeight: '900', lineHeight: 1.1 }}>{greeting},</h1>
-            <h2 className="mb-0 mt-1 user-full-name-greeting text-muted font-weight-light text-truncate text-start opacity-75 w-100" style={{ fontSize: 'clamp(0.9rem, 3.5vw, 1.25rem)' }}>{user.full_name}</h2>
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <div className="page-header-subtitle">{formattedDate}</div>
+            <div className="page-header-title">{greeting}, {user.full_name?.split(' ')[0]}</div>
           </div>
-          <div className="greeting-icon-wrapper p-2 p-md-3 bg-light rounded-circle shadow-inner flex-shrink-0 d-flex justify-content-center align-items-center" style={{ width: 'clamp(55px, 14vw, 75px)', height: 'clamp(55px, 14vw, 75px)' }}>
-            <i id="weather-icon" className={`fas ${user.status === 'Frozen' ? 'fa-user-lock' : 'fa-sun'}`} style={{ fontSize: 'clamp(1.75rem, 6.5vw, 2.5rem)', color: user.status === 'Frozen' ? '#dc3545' : '#FFD700' }}></i>
+          <div className="bg-white rounded-circle shadow-sm d-flex justify-content-center align-items-center" style={{ width: '56px', height: '56px', border: '1px solid rgba(0,0,0,0.05)' }}>
+            <i className={`fas ${user.status === 'Frozen' ? 'fa-user-lock text-danger' : 'fa-sun text-warning'}`} style={{ fontSize: '1.5rem' }}></i>
           </div>
         </div>
 
         {/* Balances & Accounts Grid */}
         <div className="row mb-4">
-          <div className="col-12 mb-4 mb-lg-0">
-            <div className="balance-card p-4 p-md-5 h-100 text-white shadow-lg position-relative overflow-hidden" 
-                 onClick={() => setShowAccountModal(true)}
-                 style={{ 
-                   background: 'linear-gradient(135deg, #002D72 0%, #0056b3 100%)', 
-                   borderRadius: '24px',
-                   cursor: 'pointer',
-                   minHeight: '260px'
-                 }}>
-              <div className="position-absolute" style={{ top: '-20px', right: '-20px', opacity: 0.1 }}>
-                <i className="fas fa-university" style={{ fontSize: '200px' }}></i>
-              </div>
+          <div className="col-12">
+            <div className="premium-balance-card" onClick={() => setShowAccountModal(true)} style={{ cursor: 'pointer' }}>
               <div className="d-flex justify-content-between align-items-start mb-4">
-                <div>
-                  <small className="text-uppercase opacity-75" style={{ letterSpacing: '1px', fontWeight: 600, fontSize: '0.75rem' }}>Total Available Balance</small>
+                <div style={{ position: 'relative', zIndex: 1 }}>
+                  <small className="text-uppercase" style={{ letterSpacing: '1px', fontWeight: 600, fontSize: '0.75rem', opacity: 0.8 }}>Total Available Balance</small>
                   <div className="d-flex align-items-center mt-2">
-                    <h2 className="mb-0" style={{ fontWeight: 800, fontSize: '2.2rem', letterSpacing: '-0.5px' }}>
+                    <div className="balance-amount">
                       {user.status === 'Frozen' ? '••••••' : (showBalance ? `$${(user.balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '••••••')}
-                    </h2>
+                    </div>
                   </div>
-                  <p className="mt-3 mb-0 opacity-75 font-monospace" style={{ letterSpacing: '2px', fontSize: '1.2rem' }}>
+                  <p className="mt-3 mb-0 font-monospace" style={{ letterSpacing: '2px', fontSize: '1.1rem', opacity: 0.9 }}>
                     {user.account_number}
                   </p>
                 </div>
-                <div className="d-flex align-items-center" style={{ gap: '20px' }}>
+                <div className="d-flex align-items-center" style={{ gap: '15px', position: 'relative', zIndex: 1 }}>
                   {user.status !== 'Frozen' && (
-                    <span onClick={(e) => { e.stopPropagation(); setShowBalance(!showBalance); }} title="Toggle Balance Visibility" style={{ cursor: 'pointer' }}>
-                      <i className={`fas ${showBalance ? 'fa-eye-slash' : 'fa-eye'} text-white fs-3 opacity-75 hover-opacity-100 transition-all`}></i>
+                    <span onClick={(e) => { e.stopPropagation(); setShowBalance(!showBalance); }} title="Toggle Balance Visibility" style={{ cursor: 'pointer', opacity: 0.8 }} className="hover-opacity-100 transition-all">
+                      <i className={`fas ${showBalance ? 'fa-eye-slash' : 'fa-eye'} text-white fs-4`}></i>
                     </span>
                   )}
-                  <div className="bg-white bg-opacity-25 p-3 rounded-lg backdrop-blur d-none d-sm-block">
+                  <div className="bg-white bg-opacity-25 p-3 rounded-lg backdrop-blur d-none d-sm-flex align-items-center justify-content-center border border-light border-opacity-25">
                     <i className={`fas ${user.status === 'Frozen' ? 'fa-lock' : 'fa-shield-check'} fs-4 text-white`}></i>
                   </div>
                 </div>
               </div>
-              <div className="mt-auto pt-3 border-top border-light border-opacity-25 d-flex justify-content-between align-items-center">
-                <small className="d-block">Synox Private Banking Network (Default)</small>
+              <div className="mt-auto pt-3 border-top border-light border-opacity-25 d-flex justify-content-between align-items-center" style={{ position: 'relative', zIndex: 1 }}>
+                <small className="d-block opacity-75 fw-bold">Synox Private Banking Network (Default)</small>
+                <i className="fab fa-cc-visa fs-3 opacity-75"></i>
               </div>
             </div>
           </div>
         </div>
 
         <div className="row">
-          {/* Left Column: Actions & Transfer */}
-          <div className="col-lg-4 mb-4">
-            {/* Quick Actions */}
-            <div className="glass-card bg-white p-4 rounded-xl shadow-sm border border-light d-flex flex-column mb-4">
-              <h5 className="font-weight-bold mb-4">Quick Actions</h5>
-              <div className="row g-3">
-                {[
-                  { label: 'Send Money', icon: 'fa-paper-plane', color: '#002D72', path: '/dashboard/transfers' },
-                  { label: 'Pay Bills', icon: 'fa-file-invoice', color: '#dc3545', path: '/dashboard/transfers' },
-                  { label: 'Statements', icon: 'fa-file-invoice-dollar', color: '#28a745', path: '/dashboard/statements' },
-                  { label: 'Security', icon: 'fa-user-shield', color: '#fd7e14', path: '/dashboard/profile' }
-                ].map(action => (
-                  <div key={action.label} className="col-6 d-flex">
-                    <div 
-                      className="text-decoration-none w-100" 
-                      style={{ cursor: 'pointer' }}
-                      onClick={(e) => {
-                        if (user.status === 'Frozen' && (action.label === 'Send Money' || action.label === 'Pay Bills')) {
-                          e.preventDefault();
-                          setShowFrozenPopup(true);
-                        } else {
-                          navigate(action.path);
-                        }
-                      }}
-                    >
-                      <div className="action-item text-center p-3 h-100 rounded-xl hover-bg-light transition-all border border-transparent hover-border-primary shadow-sm d-flex flex-column align-items-center justify-content-center" style={{ background: '#f8fafc', borderRadius: '16px', minHeight: '110px' }}>
-                        <div className="action-icon mx-auto mb-2 d-flex align-items-center justify-content-center bg-white rounded-circle shadow-sm" 
-                             style={{ color: action.color, fontSize: '1.2rem', width: '45px', height: '45px' }}>
-                          <i className={`fas ${action.icon}`}></i>
-                        </div>
-                        <span className="small font-weight-bold text-dark d-block" style={{ lineHeight: '1.2' }}>{action.label}</span>
-                      </div>
+          {/* Left Column: Actions */}
+          <div className="col-lg-5 mb-4 delay-100 animate-fade-in-up">
+            <h5 className="font-weight-bold mb-3" style={{ color: '#001f54' }}>Quick Actions</h5>
+            <div className="row g-3">
+              {[
+                { label: 'Transfer', icon: 'fa-paper-plane', color: '#0d6efd', bg: 'rgba(13, 110, 253, 0.1)', path: '/dashboard/transfers' },
+                { label: 'Deposit', icon: 'fa-arrow-down', color: '#198754', bg: 'rgba(25, 135, 84, 0.1)', path: '/dashboard/deposit' },
+                { label: 'Withdraw', icon: 'fa-arrow-up', color: '#dc3545', bg: 'rgba(220, 53, 69, 0.1)', path: '/dashboard/withdraw' },
+                { label: 'Crypto', icon: 'fa-bitcoin', color: '#f7931a', bg: 'rgba(247, 147, 26, 0.1)', path: '/dashboard/crypto' }
+              ].map(action => (
+                <div key={action.label} className="col-6">
+                  <div className="action-squircle" onClick={(e) => {
+                    if (user.status === 'Frozen' && (action.label === 'Transfer' || action.label === 'Withdraw')) {
+                      e.preventDefault();
+                      setShowFrozenPopup(true);
+                    } else {
+                      navigate(action.path);
+                    }
+                  }}>
+                    <div className="action-icon-wrapper" style={{ color: action.color, backgroundColor: action.bg }}>
+                      <i className={`fas ${action.icon}`}></i>
                     </div>
+                    <span className="font-weight-bold" style={{ color: '#343a40', fontSize: '0.95rem' }}>{action.label}</span>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Quick Transfer Form */}
-            <div className="glass-card bg-white p-4 rounded-xl shadow-sm border border-light d-flex flex-column">
-              <h5 className="font-weight-bold mb-4">Quick Transfer</h5>
-              <div className="d-flex mb-4 overflow-auto pb-2 custom-scrollbar" style={{ gap: '15px' }}>
-                <div className="text-center flex-shrink-0" style={{ minWidth: '70px', cursor: 'pointer' }} onClick={() => navigate('/dashboard/transfers')}>
-                  <div className="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto mb-2 border border-primary border-2 hover-bg-light transition-all" style={{ width: '55px', height: '55px' }}>
-                    <i className="fas fa-plus text-primary"></i>
-                  </div>
-                  <small className="font-weight-bold text-dark d-block text-truncate">New</small>
                 </div>
-              </div>
-              
-              <div className="quick-transfer-input mt-auto bg-light rounded-xl p-2 d-flex align-items-center">
-                <div className="d-flex align-items-center flex-grow-1 bg-white rounded-lg p-2 shadow-sm border border-light me-3">
-                  <span className="font-weight-bold text-muted ms-2 me-1 fs-5">$</span>
-                  <input type="number" className="form-control border-0 bg-transparent shadow-none font-weight-bold fs-5 mb-0 p-1 custom-number-input w-100" placeholder="0.00" style={{ outline: 'none' }} />
-                </div>
-                <button className="btn btn-primary rounded-xl px-0 py-2 shadow-sm d-flex align-items-center justify-content-center transition-all hover-opacity-80 flex-shrink-0" style={{ width: '60px', height: '60px', background: '#002D72', border: 'none' }} onClick={() => { if(user.status === 'Frozen') setShowFrozenPopup(true); else navigate('/dashboard/transfers'); }}>
-                  <i className="fas fa-paper-plane" style={{ fontSize: '1.4rem' }}></i>
-                </button>
-              </div>
+              ))}
             </div>
           </div>
 
-          {/* Recent Transactions */}
-          <div className="col-lg-8 mb-4">
-            <div className="glass-card bg-white p-3 p-md-4 h-100 rounded-xl shadow-sm border border-light d-flex flex-column">
-              <div className="d-flex justify-content-between align-items-center mb-4">
-                <h5 className="font-weight-bold mb-0">Recent Transactions</h5>
-              </div>
-              <div className="transactions-list rounded-xl overflow-hidden flex-grow-1">
-                {transactions.length > 0 ? (
-                  transactions.map(tx => (
-                    <div key={tx.id} className="transaction-item p-2 p-md-3 border-bottom d-flex align-items-center hover-bg-light transition-all w-100">
-                      <div className={`icon-box me-2 me-md-3 rounded-circle d-flex align-items-center justify-content-center flex-shrink-0`}
-                           style={{ width: 'clamp(38px, 10vw, 48px)', height: 'clamp(38px, 10vw, 48px)', background: tx.type === 'credit' ? 'rgba(40, 167, 69, 0.1)' : 'rgba(220, 53, 69, 0.1)', color: tx.type === 'credit' ? '#28a745' : '#dc3545', fontSize: 'clamp(0.9rem, 4vw, 1.2rem)' }}>
-                        <i className={`fas ${tx.type === 'credit' ? 'fa-arrow-down' : 'fa-arrow-up'}`}></i>
-                      </div>
-                      <div className="flex-grow-1" style={{ minWidth: 0 }}>
-                        <p className="mb-0 font-weight-bold text-dark text-truncate" style={{ fontSize: 'clamp(0.85rem, 3.5vw, 1rem)' }}>{tx.description}</p>
-                        <small className="text-muted text-truncate d-block" style={{ fontSize: 'clamp(0.7rem, 3vw, 0.85rem)' }}>{new Date(tx.transaction_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</small>
-                      </div>
-                      <div className={`text-right ${tx.type === 'credit' ? 'text-success' : 'text-danger'} font-weight-bold flex-shrink-0 ms-2`} style={{ fontSize: 'clamp(0.9rem, 4vw, 1.1rem)' }}>
-                        {tx.type === 'credit' ? '+' : '-'}${tx.amount?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                      </div>
+          {/* Right Column: Transactions */}
+          <div className="col-lg-7 mb-4 delay-200 animate-fade-in-up">
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <h5 className="font-weight-bold mb-0" style={{ color: '#001f54' }}>Recent Transactions</h5>
+              <button className="btn btn-link text-decoration-none p-0 fw-bold" onClick={() => navigate('/dashboard/statements')}>View All</button>
+            </div>
+            
+            <div className="transactions-list">
+              {transactions.length > 0 ? (
+                transactions.map(tx => (
+                  <div key={tx.id} className="tx-row d-flex align-items-center">
+                    <div className="tx-icon flex-shrink-0 me-3" style={{ background: tx.type === 'credit' ? 'rgba(25, 135, 84, 0.1)' : 'rgba(220, 53, 69, 0.1)', color: tx.type === 'credit' ? '#198754' : '#dc3545' }}>
+                      <i className={`fas ${tx.type === 'credit' ? 'fa-arrow-down' : 'fa-arrow-up'}`}></i>
                     </div>
-                  ))
-                ) : (
-                  <div className="text-center py-5 text-muted w-100">
-                    <i className="fas fa-history mb-2 opacity-25" style={{ fontSize: '2.5rem' }}></i>
-                    <p className="small mb-0">No transaction activity recorded yet.</p>
+                    <div className="flex-grow-1" style={{ minWidth: 0 }}>
+                      <p className="mb-0 font-weight-bold text-dark text-truncate">{tx.description}</p>
+                      <small className="text-muted text-truncate d-block">{new Date(tx.transaction_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</small>
+                    </div>
+                    <div className={`text-right ${tx.type === 'credit' ? 'text-success' : 'text-danger'} font-weight-bold flex-shrink-0 ms-2`} style={{ fontSize: '1.1rem' }}>
+                      {tx.type === 'credit' ? '+' : '-'}${tx.amount?.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </div>
                   </div>
-                )}
-                {transactions.length > 0 && (
-                  <button className="btn btn-link btn-block text-muted small font-weight-bold py-3 text-decoration-none w-100" onClick={() => navigate('/dashboard/statements')}>
-                    See more <i className="fas fa-chevron-down ms-1"></i>
-                  </button>
-                )}
-              </div>
+                ))
+              ) : (
+                <div className="neo-card p-5 text-center text-muted">
+                  <i className="fas fa-history mb-3 opacity-25" style={{ fontSize: '3rem' }}></i>
+                  <p className="mb-0 fw-bold">No transaction activity recorded yet.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -214,89 +165,57 @@ const DashboardPage = () => {
 
       {/* Simplified Account Details Modal */}
       {showAccountModal && (
-        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', zIndex: 2000 }}>
+        <div className="modal show d-block animate-fade-in-up" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', zIndex: 2000 }}>
           <div className="modal-dialog modal-dialog-centered px-3" style={{ maxWidth: '480px' }}>
-            <div className="modal-content border-0 shadow-lg" style={{ borderRadius: '20px', overflow: 'hidden' }}>
-              <div className="modal-body p-4">
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                  <h5 className="mb-0 font-weight-bold" style={{ color: '#002D72' }}>Account Overview</h5>
-                  <button type="button" className="btn-close shadow-none" onClick={() => setShowAccountModal(false)}></button>
+            <div className="neo-card modal-content border-0 p-4">
+              <div className="d-flex justify-content-between align-items-center mb-4">
+                <h5 className="mb-0 font-weight-bold" style={{ color: '#001f54' }}>Account Overview</h5>
+                <button type="button" className="btn-close shadow-none" onClick={() => setShowAccountModal(false)}></button>
+              </div>
+
+              <div className="account-details-grid">
+                <div className="p-3 bg-light rounded-3 border border-light shadow-sm mb-4">
+                  <label className="text-muted small text-uppercase fw-bold d-block mb-1" style={{ fontSize: '0.65rem', letterSpacing: '0.5px' }}>Account Holder</label>
+                  <p className="h6 font-weight-bold mb-0 text-dark">{user.full_name}</p>
                 </div>
 
-                <div className="account-details-grid">
-                  <div className="row mb-4">
-                    <div className="col-12">
-                      <div className="p-3 bg-light rounded-lg border border-light shadow-inner">
-                        <label className="text-muted small text-uppercase fw-bold d-block mb-1" style={{ fontSize: '0.65rem', letterSpacing: '0.5px' }}>Account Holder</label>
-                        <p className="h6 font-weight-bold mb-0 text-dark">{user.full_name}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="row g-3">
-                    <div className="col-12">
-                      <div className="detail-row d-flex justify-content-between align-items-center py-2 border-bottom">
-                        <span className="text-muted small">Account Number</span>
+                <div className="row g-3">
+                  {[
+                    { label: 'Account Number', value: user.account_number, isMono: true, copy: true },
+                    { label: 'Routing Number (ABA)', value: '021000021', isMono: true },
+                    { label: 'SWIFT / BIC Code', value: 'SYNXUS33', isMono: true },
+                    { label: 'Account Type', value: user.account_type || 'Private Wealth' },
+                    { label: 'Bank Name', value: 'Synox International Bank' },
+                    { label: 'Branch Location', value: 'Park Avenue, NY' }
+                  ].map((detail, i) => (
+                    <div className="col-12" key={i}>
+                      <div className={`detail-row d-flex justify-content-between align-items-center py-2 ${i < 5 ? 'border-bottom' : ''}`}>
+                        <span className="text-muted small">{detail.label}</span>
                         <div className="d-flex align-items-center">
-                          <span className="font-monospace fw-bold text-dark me-2">{user.account_number}</span>
-                          <button className="btn btn-sm btn-link p-0 text-decoration-none" onClick={() => navigator.clipboard.writeText(user.account_number)} title="Copy">
-                            <i className="far fa-copy text-muted" style={{ fontSize: '0.8rem' }}></i>
-                          </button>
+                          <span className={`fw-bold text-dark ${detail.isMono ? 'font-monospace' : ''} ${detail.copy ? 'me-2' : ''}`}>{detail.value}</span>
+                          {detail.copy && (
+                            <button className="btn btn-sm btn-link p-0 text-decoration-none" onClick={() => navigator.clipboard.writeText(detail.value)} title="Copy">
+                              <i className="far fa-copy text-muted" style={{ fontSize: '0.8rem' }}></i>
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
+                  ))}
+                </div>
 
-                    <div className="col-12">
-                      <div className="detail-row d-flex justify-content-between align-items-center py-2 border-bottom">
-                        <span className="text-muted small">Routing Number (ABA)</span>
-                        <span className="font-monospace fw-bold text-dark">021000021</span>
-                      </div>
-                    </div>
-
-                    <div className="col-12">
-                      <div className="detail-row d-flex justify-content-between align-items-center py-2 border-bottom">
-                        <span className="text-muted small">SWIFT / BIC Code</span>
-                        <span className="font-monospace fw-bold text-dark">SYNXUS33</span>
-                      </div>
-                    </div>
-
-                    <div className="col-12">
-                      <div className="detail-row d-flex justify-content-between align-items-center py-2 border-bottom">
-                        <span className="text-muted small">Account Type</span>
-                        <span className="fw-bold text-dark">{user.account_type || 'Private Wealth'}</span>
-                      </div>
-                    </div>
-
-                    <div className="col-12">
-                      <div className="detail-row d-flex justify-content-between align-items-center py-2 border-bottom">
-                        <span className="text-muted small">Bank Name</span>
-                        <span className="fw-bold text-dark">Synox International Bank</span>
-                      </div>
-                    </div>
-
-                    <div className="col-12">
-                      <div className="detail-row d-flex justify-content-between align-items-center py-2">
-                        <span className="text-muted small">Branch Location</span>
-                        <span className="fw-bold text-dark text-end" style={{ fontSize: '0.85rem' }}>Park Avenue, NY</span>
-                      </div>
+                <div className="mt-4 pt-3 border-top">
+                  <div className="alert bg-primary bg-opacity-10 border-0 mb-4" style={{ borderRadius: '12px' }}>
+                    <div className="d-flex align-items-baseline">
+                      <i className="fas fa-shield-check text-primary me-2" style={{ color: '#002D72' }}></i>
+                      <small className="text-dark fw-bold" style={{ fontSize: '0.75rem', lineHeight: '1.4' }}>
+                        This account is fully verified and insured by Federal Deposit Insurance protocols.
+                      </small>
                     </div>
                   </div>
-
-                  <div className="mt-4 pt-2 border-top">
-                    <div className="alert bg-primary bg-opacity-10 border-0 mb-3" style={{ borderRadius: '12px' }}>
-                      <div className="d-flex align-items-baseline">
-                        <i className="fas fa-shield-check text-primary me-2" style={{ color: '#002D72' }}></i>
-                        <small className="text-dark" style={{ fontSize: '0.75rem', lineHeight: '1.4' }}>
-                          This account is fully verified and insured by Federal Deposit Insurance protocols.
-                        </small>
-                      </div>
-                    </div>
-                    <button className="btn btn-primary w-100 py-2 font-weight-bold shadow-sm" 
-                            style={{ background: '#002D72', border: 'none', borderRadius: '12px' }} 
-                            onClick={() => setShowAccountModal(false)}>
-                      Dismiss
-                    </button>
-                  </div>
+                  <button className="btn-premium-navy w-100" onClick={() => setShowAccountModal(false)}>
+                    Dismiss
+                  </button>
                 </div>
               </div>
             </div>

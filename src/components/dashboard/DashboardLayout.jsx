@@ -100,17 +100,16 @@ const DashboardLayout = ({ children, sidebarOverride, onNotificationClick, custo
                   to={item.path}
                   onClick={() => setIsSidebarToggled(false)}
                   className={`list-group-item list-group-item-action py-3 px-4 fw-bold ${location.pathname === item.path ? 'active' : ''}`}
-                  style={{ fontSize: '1.05rem', border: 'none', transition: 'all 0.25s ease', backgroundColor: 'transparent' }}
                 >
-                  <i className={item.icon} style={{ width: '32px', fontSize: '1.25rem', textAlign: 'center' }}></i> {item.label}
+                  <i className={`${item.icon} me-3`} style={{ width: '24px', textAlign: 'center' }}></i> {item.label}
                 </Link>
               ))}
               
-              <a href="#" onClick={(e) => { e.preventDefault(); setIsSidebarToggled(false); if(window.Tawk_API){ window.Tawk_API.showWidget(); window.Tawk_API.maximize(); } }} className="list-group-item list-group-item-action py-3 px-4 fw-bold" style={{ color: '#4361ee', marginTop: 'auto', fontSize: '1.05rem', backgroundColor: 'transparent', border: 'none', transition: 'all 0.25s ease' }}>
-                <i className="fas fa-headset" style={{ width: '32px', fontSize: '1.25rem', textAlign: 'center' }}></i> Contact Support
+              <a href="#" onClick={(e) => { e.preventDefault(); setIsSidebarToggled(false); if(window.Tawk_API){ window.Tawk_API.showWidget(); window.Tawk_API.maximize(); } }} className="list-group-item list-group-item-action py-3 px-4 fw-bold" style={{ marginTop: 'auto' }}>
+                <i className="fas fa-headset me-3" style={{ width: '24px', textAlign: 'center' }}></i> Contact Support
               </a>
-              <a href="#" onClick={(e) => { e.preventDefault(); handleLogout(); }} className="list-group-item list-group-item-action py-3 px-4 fw-bold text-danger" style={{ fontSize: '1.05rem', backgroundColor: 'transparent', border: 'none', transition: 'all 0.25s ease' }}>
-                <i className="fas fa-sign-out-alt" style={{ width: '32px', fontSize: '1.25rem', textAlign: 'center' }}></i> Logout
+              <a href="#" onClick={(e) => { e.preventDefault(); handleLogout(); }} className="list-group-item list-group-item-action py-3 px-4 fw-bold text-danger">
+                <i className="fas fa-sign-out-alt me-3" style={{ width: '24px', textAlign: 'center' }}></i> Logout
               </a>
             </>
           )}

@@ -41,30 +41,38 @@ const StatementsPage = () => {
 
   return (
     <DashboardLayout>
-      <div id="statements-section" className="content-section animate__animated animate__fadeIn pb-5 mt-2">
+      <div id="statements-section" className="content-section animate-fade-in-up pb-5">
+
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <div className="page-header-subtitle">Banking</div>
+            <div className="page-header-title">Account Statements</div>
+          </div>
+        </div>
+
         {/* Statement Generator Form */}
-        <div className="card border-0 shadow-sm rounded-lg mb-4 bg-white">
+        <div className="neo-card mb-4">
           <div className="card-body p-4 p-md-5">
-            <h5 className="font-weight-bold mb-4" style={{ color: '#002D72' }}><i className="fas fa-file-invoice me-2"></i>Generate New Statement</h5>
+            <h5 className="font-weight-bold mb-4" style={{ color: '#001f54' }}><i className="fas fa-file-invoice me-2"></i>Generate New Statement</h5>
             
             <div className="row g-3 align-items-end">
               <div className="col-md-3">
-                 <label className="form-label font-weight-bold text-muted small text-uppercase">Account</label>
-                 <select className="form-select border-light bg-light fw-bold" style={{ height: '50px', borderRadius: '8px' }}>
+                 <label className="form-label fw-bold text-muted small text-uppercase">Account</label>
+                 <select className="form-select premium-input">
                     <option>Main Savings (.... {user.account_number?.slice(-4) || '0000'})</option>
                  </select>
               </div>
               <div className="col-md-3">
-                 <label className="form-label font-weight-bold text-muted small text-uppercase">Year</label>
-                 <select className="form-select border-light bg-light fw-bold" value={year} onChange={(e) => setYear(e.target.value)} style={{ height: '50px', borderRadius: '8px' }}>
+                 <label className="form-label fw-bold text-muted small text-uppercase">Year</label>
+                 <select className="form-select premium-input" value={year} onChange={(e) => setYear(e.target.value)}>
                     <option value="2026">2026</option>
                     <option value="2025">2025</option>
                     <option value="2024">2024</option>
                  </select>
               </div>
               <div className="col-md-3">
-                 <label className="form-label font-weight-bold text-muted small text-uppercase">Month</label>
-                 <select className="form-select border-light bg-light fw-bold" value={month} onChange={(e) => setMonth(e.target.value)} style={{ height: '50px', borderRadius: '8px' }}>
+                 <label className="form-label fw-bold text-muted small text-uppercase">Month</label>
+                 <select className="form-select premium-input" value={month} onChange={(e) => setMonth(e.target.value)}>
                     <option value="01">January</option><option value="02">February</option><option value="03">March</option>
                     <option value="04">April</option><option value="05">May</option><option value="06">June</option>
                     <option value="07">July</option><option value="08">August</option><option value="09">September</option>
@@ -72,7 +80,7 @@ const StatementsPage = () => {
                  </select>
               </div>
               <div className="col-md-3">
-                 <button className="btn btn-primary w-100 fw-bold shadow-sm transition-all hover-opacity-80" onClick={downloadStatementPDF} style={{ background: '#002D72', border: 'none', height: '50px', borderRadius: '8px' }}>
+                 <button className="btn-premium-navy w-100 d-flex justify-content-center align-items-center" onClick={downloadStatementPDF} style={{ height: '50px' }}>
                    <i className="fas fa-download me-2"></i> Download PDF
                  </button>
               </div>
@@ -80,19 +88,19 @@ const StatementsPage = () => {
             
             <hr className="my-4 opacity-10" />
             
-            <h6 className="font-weight-bold mb-3 d-flex align-items-center"><i className="fas fa-envelope text-primary me-2"></i>Email Delivery Setup</h6>
+            <h6 className="font-weight-bold mb-3 d-flex align-items-center" style={{ color: '#001f54' }}><i className="fas fa-envelope me-2"></i>Email Delivery Setup</h6>
             <form onSubmit={sendStatementEmail} className="d-flex flex-column flex-sm-row gap-2">
-               <input type="email" className="form-control border-light bg-light flex-grow-1 px-3" placeholder="Enter recipient email address..." value={email} onChange={(e) => setEmail(e.target.value)} required style={{ height: '48px', borderRadius: '8px', maxWidth: '400px' }} />
-               <button type="submit" className="btn btn-outline-primary px-4 fw-bold flex-shrink-0" style={{ height: '48px', borderRadius: '8px', color: '#002D72', borderColor: '#002D72' }}>Dispatch Email</button>
+               <input type="email" className="form-control premium-input flex-grow-1" placeholder="Enter recipient email address..." value={email} onChange={(e) => setEmail(e.target.value)} required style={{ maxWidth: '400px' }} />
+               <button type="submit" className="btn btn-outline-primary px-4 fw-bold flex-shrink-0" style={{ height: '50px', borderRadius: '14px', color: '#001f54', borderColor: '#001f54', borderWidth: '2px' }}>Dispatch Email</button>
             </form>
-            {emailSuccess && <small className="text-success mt-2 d-block fw-bold animate__animated animate__fadeIn"><i className="fas fa-check-circle me-1"></i>Statement successfully dispatched to inbox.</small>}
+            {emailSuccess && <small className="text-success mt-2 d-block fw-bold animate-fade-in-up"><i className="fas fa-check-circle me-1"></i>Statement successfully dispatched to inbox.</small>}
           </div>
         </div>
 
         {/* Recent Statements Table */}
-        <div className="card border-0 shadow-sm rounded-lg bg-white overflow-hidden">
+        <div className="neo-card overflow-hidden">
           <div className="card-header bg-white border-bottom border-light pt-4 pb-3 px-4">
-             <h5 className="font-weight-bold mb-0" style={{ color: '#002D72' }}>Recent Periodic Statements</h5>
+             <h5 className="font-weight-bold mb-0" style={{ color: '#001f54' }}>Recent Periodic Statements</h5>
           </div>
           <div className="card-body p-0">
             <div className="table-responsive">

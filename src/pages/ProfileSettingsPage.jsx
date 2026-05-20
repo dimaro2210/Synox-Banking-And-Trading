@@ -60,26 +60,34 @@ const ProfileSettingsPage = () => {
 
   return (
     <DashboardLayout>
-      <div id="profile-section" className="content-section animate__animated animate__fadeIn">
-        <div className="row g-4 mt-2">
+      <div id="profile-section" className="content-section animate-fade-in-up">
+        
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <div className="page-header-subtitle">Settings</div>
+            <div className="page-header-title">Profile Information</div>
+          </div>
+        </div>
+
+        <div className="row g-4">
           {/* Profile Details */}
-          <div className="col-lg-7">
-            <div className="glass-card bg-white p-4 p-md-5 rounded-xl shadow-sm border border-light h-100">
-              <h5 className="font-weight-bold mb-4 pb-3 border-bottom text-primary" style={{ color: '#002D72 !important' }}>
-                Profile Information
+          <div className="col-lg-7 delay-100 animate-fade-in-up">
+            <div className="neo-card p-4 p-md-5 h-100">
+              <h5 className="font-weight-bold mb-4 pb-3 border-bottom" style={{ color: '#001f54' }}>
+                Personal Details
               </h5>
               
-              <div className="d-flex flex-column flex-sm-row align-items-center mb-5 p-3 p-md-4 bg-light rounded-lg border border-light">
+              <div className="d-flex flex-column flex-sm-row align-items-center mb-5 p-4 bg-light rounded-4" style={{ border: '1px solid rgba(0,0,0,0.05)' }}>
                 <div className="position-relative profile-img-container mx-auto" style={{ width: '120px', height: '120px' }}>
                   {user.profile_picture ? (
                     <img 
                       src={user.profile_picture} 
-                      className="rounded-circle shadow border border-4 border-white" 
+                      className="rounded-circle shadow-sm border border-4 border-white" 
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       alt="Profile"
                     />
                   ) : (
-                    <div className="rounded-circle shadow border border-4 border-white d-flex align-items-center justify-content-center bg-light" style={{ width: '100%', height: '100%' }}>
+                    <div className="rounded-circle shadow-sm border border-4 border-white d-flex align-items-center justify-content-center bg-white" style={{ width: '100%', height: '100%' }}>
                       <i className="fas fa-user text-muted fa-3x"></i>
                     </div>
                   )}
@@ -92,117 +100,114 @@ const ProfileSettingsPage = () => {
                   />
                   <button
                     type="button"
-                    className="btn btn-primary rounded-circle position-absolute shadow-sm d-flex align-items-center justify-content-center hover-opacity-80 transition-all"
+                    className="btn rounded-circle position-absolute shadow-sm d-flex align-items-center justify-content-center hover-opacity-80 transition-all"
                     style={{
-                      width: '32px',
-                      height: '32px',
+                      width: '36px',
+                      height: '36px',
                       bottom: 0,
                       right: 0,
-                      background: '#002D72',
-                      borderColor: '#fff',
-                      borderWidth: '2px',
+                      background: '#001f54',
+                      color: '#D4AF37',
+                      border: '3px solid #fff',
                       padding: 0
                     }}
                     onClick={() => document.getElementById('profile-upload').click()}
                   >
-                    <i className="fas fa-camera" style={{ fontSize: '12px' }}></i>
+                    <i className="fas fa-camera" style={{ fontSize: '14px' }}></i>
                   </button>
                 </div>
-                <div>
-                  <h5 className="font-weight-bold mb-1">{user.full_name}</h5>
-                  <p className="text-muted small mb-2">Member since 2023</p>
-                  <span className="badge bg-success bg-opacity-10 text-success px-3 py-1 rounded-pill"><i className="fas fa-check-circle me-1"></i> Identity Verified</span>
+                <div className="ms-sm-4 mt-3 mt-sm-0 text-center text-sm-start">
+                  <h5 className="font-weight-bold mb-1 text-dark">{user.full_name}</h5>
+                  <p className="text-muted small mb-2">Private Wealth Client</p>
+                  <span className="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill fw-bold"><i className="fas fa-shield-check me-1"></i> Fully Verified</span>
                 </div>
               </div>
 
               <form id="profile-form" onSubmit={handleProfileSubmit}>
-                <div className="row">
-                  <div className="col-md-6 form-group mb-3">
-                    <label className="small font-weight-bold text-muted text-uppercase mb-1" style={{ letterSpacing: '1px' }}>Full Name</label>
+                <div className="row g-3">
+                  <div className="col-md-6 form-group">
+                    <label className="small fw-bold text-muted text-uppercase mb-2" style={{ letterSpacing: '0.5px' }}>Full Name</label>
                     <input
                       type="text"
-                      className="form-control form-control-lg border-0 bg-light shadow-none text-muted"
+                      className="form-control premium-input text-muted"
                       value={fullName}
                       readOnly
-                      style={{ fontWeight: 600, borderRadius: '10px', cursor: 'not-allowed' }}
+                      style={{ cursor: 'not-allowed' }}
                     />
                   </div>
-                  <div className="col-md-6 form-group mb-3">
-                    <label className="small font-weight-bold text-muted text-uppercase mb-1" style={{ letterSpacing: '1px' }}>Email Address</label>
+                  <div className="col-md-6 form-group">
+                    <label className="small fw-bold text-muted text-uppercase mb-2" style={{ letterSpacing: '0.5px' }}>Email Address</label>
                     <input
                       type="email"
-                      className="form-control form-control-lg border-0 bg-light shadow-none text-muted"
+                      className="form-control premium-input text-muted"
                       value={email}
                       readOnly
-                      style={{ fontWeight: 600, borderRadius: '10px', cursor: 'not-allowed' }}
+                      style={{ cursor: 'not-allowed' }}
                     />
                   </div>
-                  <div className="col-md-12 form-group mb-3">
-                    <label className="small font-weight-bold text-muted text-uppercase mb-1" style={{ letterSpacing: '1px' }}>Phone Number</label>
+                  <div className="col-md-12 form-group mt-3">
+                    <label className="small fw-bold text-muted text-uppercase mb-2" style={{ letterSpacing: '0.5px' }}>Phone Number</label>
                     <input
                       type="text"
-                      className="form-control form-control-lg border-0 bg-light shadow-none"
+                      className="form-control premium-input"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      style={{ fontWeight: 600, color: '#333', borderRadius: '10px' }}
                     />
                   </div>
                 </div>
                 <button
                   type="submit"
-                  className="btn btn-primary rounded-pill mt-3 py-3 w-100 fw-bold shadow-sm hover-opacity-80 transition-all"
-                  style={{ background: '#002D72', border: 'none' }}
+                  className="btn-premium-navy w-100 mt-4 py-3 d-flex justify-content-center align-items-center"
                 >
-                  Save <i className="fas fa-check ms-2"></i>
+                  Save Changes <i className="fas fa-check ms-2"></i>
                 </button>
               </form>
             </div>
           </div>
 
           {/* Security Box */}
-          <div className="col-lg-5">
-            <div className="glass-card bg-white p-4 p-md-5 rounded-xl shadow-sm border border-light h-100">
-              <h5 className="font-weight-bold mb-4 pb-3 border-bottom text-primary" style={{ color: '#002D72 !important' }}>
-                Password & Security
+          <div className="col-lg-5 delay-200 animate-fade-in-up">
+            <div className="neo-card p-4 p-md-5 h-100">
+              <h5 className="font-weight-bold mb-4 pb-3 border-bottom" style={{ color: '#001f54' }}>
+                Security Settings
               </h5>
               
-              <div className="d-flex align-items-center mb-4 p-3 bg-light rounded-lg border border-success border-opacity-25">
-                <i className="fas fa-shield-alt text-success fs-3 me-3 opacity-75"></i>
+              <div className="d-flex align-items-center mb-4 p-4 rounded-4" style={{ background: 'rgba(25, 135, 84, 0.05)', border: '1px solid rgba(25, 135, 84, 0.1)' }}>
+                <i className="fas fa-shield-alt text-success fs-2 me-3"></i>
                 <div>
-                  <h6 className="font-weight-bold mb-1">Account Secure</h6>
-                  <p className="text-muted small mb-0">Your security settings meet our highest standards.</p>
+                  <h6 className="font-weight-bold mb-1 text-dark">Account Secure</h6>
+                  <p className="text-muted small mb-0">Your settings meet our high standards.</p>
                 </div>
               </div>
 
               <form id="security-form" onSubmit={handleSecuritySubmit}>
                 <div className="form-group mb-3">
-                  <label className="small font-weight-bold text-muted text-uppercase mb-2" style={{ letterSpacing: '1px' }}>Current Password</label>
+                  <label className="small fw-bold text-muted text-uppercase mb-2" style={{ letterSpacing: '0.5px' }}>Current Password</label>
                   <input
                     type="password"
-                    className="form-control form-control-lg border-0 shadow-none"
+                    className="form-control premium-input"
                     placeholder="••••••••"
-                    style={{ background: '#f8f9fa', borderRadius: '10px' }}
                   />
                 </div>
                 <div className="form-group mb-3">
-                  <label className="small font-weight-bold text-muted text-uppercase mb-2" style={{ letterSpacing: '1px' }}>New Password</label>
-                  <input type="password" className="form-control form-control-lg border-0 shadow-none" style={{ background: '#f8f9fa', borderRadius: '10px' }} placeholder="Enter new password" />
+                  <label className="small fw-bold text-muted text-uppercase mb-2" style={{ letterSpacing: '0.5px' }}>New Password</label>
+                  <input type="password" className="form-control premium-input" placeholder="Enter new password" />
                 </div>
                 <div className="form-group mb-4">
-                  <label className="small font-weight-bold text-muted text-uppercase mb-2" style={{ letterSpacing: '1px' }}>Confirm Password</label>
-                  <input type="password" className="form-control form-control-lg border-0 shadow-none" style={{ background: '#f8f9fa', borderRadius: '10px' }} placeholder="Re-enter new password" />
+                  <label className="small fw-bold text-muted text-uppercase mb-2" style={{ letterSpacing: '0.5px' }}>Confirm Password</label>
+                  <input type="password" className="form-control premium-input" placeholder="Re-enter new password" />
                 </div>
                 
                 <hr className="my-4 opacity-10" />
                 
-                <div className="d-flex justify-content-between align-items-center mb-4 p-3 bg-light rounded-lg">
+                <div className="d-flex justify-content-between align-items-center mb-4 p-3 bg-light rounded-4" style={{ border: '1px solid rgba(0,0,0,0.05)' }}>
                   <div>
-                    <span className="font-weight-bold d-block text-dark">Two-Factor Auth (2FA)</span>
-                    <small className="text-muted">Requires verification code on login.</small>
+                    <span className="font-weight-bold d-block text-dark">Two-Factor Auth</span>
+                    <small className="text-muted">Verification code required.</small>
                   </div>
-                  <div className="form-check form-switch fs-4">
+                  <div className="form-check form-switch fs-4 mb-0">
                     <input
-                      className="form-check-input flex-shrink-0"
+                      className="form-check-input"
                       type="checkbox"
                       id="2fa-switch"
                       checked={tfa}
@@ -213,8 +218,8 @@ const ProfileSettingsPage = () => {
                 </div>
                 <button
                   type="submit"
-                  className="btn btn-outline-primary w-100 rounded-pill py-3 fw-bold"
-                  style={{ color: '#002D72', borderColor: '#002D72' }}
+                  className="btn btn-outline-primary w-100 py-3 fw-bold rounded-4"
+                  style={{ color: '#001f54', borderColor: '#001f54', borderWidth: '2px' }}
                 >
                   Update Credentials
                 </button>

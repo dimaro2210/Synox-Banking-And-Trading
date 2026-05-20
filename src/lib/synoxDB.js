@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { EmailService } from './emailService';
 
 const supabaseUrl = 'https://nkykcuirirhshahtyrih.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5reWtjdWlyaXJoc2hhaHR5cmloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1OTE4MTAsImV4cCI6MjA4OTE2NzgxMH0.iyXcqygHMukiWFxLp155rqgaSmnangH97iz7bDhGk7Q';
@@ -183,6 +184,11 @@ export const SynoxDB = {
       'bank'
     );
 
+    const user = await SynoxDB.getUserById(userId);
+    if (user) {
+      EmailService.sendAccountApproved(user).catch(console.error);
+    }
+
     triggerUpdate();
     return { success: true };
   },
@@ -204,6 +210,11 @@ export const SynoxDB = {
       `Your account application was not approved. Reason: ${reason || 'Verification failed'}.`,
       'bank'
     );
+
+    const user = await SynoxDB.getUserById(userId);
+    if (user) {
+      EmailService.sendAccountRejected(user, reason || 'Verification failed').catch(console.error);
+    }
 
     triggerUpdate();
     return { success: true };
@@ -676,6 +687,7 @@ export const SynoxDB = {
         `Your deposit of $${deposit.amount.toLocaleString()} has been verified and ${cryptoAmount.toFixed(6)} ${deposit.asset} credited to your Crypto Portfolio.`,
         'crypto'
       );
+      EmailService.sendDepositApproved(user, deposit.amount, deposit.asset, cryptoAmount).catch(console.error);
     }
 
     triggerUpdate();
@@ -704,6 +716,11 @@ export const SynoxDB = {
       `Your recent deposit of $${deposit.amount.toLocaleString()} was not approved. Reason: ${rejectReason}.`,
       'crypto'
     );
+
+    const user = await SynoxDB.getUserById(deposit.user_id);
+    if (user) {
+      EmailService.sendDepositRejected(user, deposit.amount, rejectReason).catch(console.error);
+    }
 
     triggerUpdate();
     return { success: true };
@@ -778,13 +795,17 @@ export const SynoxDB = {
         .eq('id', details.transaction_id);
     }
 
-    // 3. Notify user
     await SynoxDB.addNotification(
       transfer.user_id,
       'Bank Transfer Approved',
       `Your transfer of $${transfer.amount.toLocaleString()} to ${details.recipientName || 'recipient'} has been approved and processed.`,
       'bank'
     );
+
+    const user = await SynoxDB.getUserById(transfer.user_id);
+    if (user) {
+      EmailService.sendTransferApproved(user, transfer.amount, details.recipientName || 'recipient').catch(console.error);
+    }
 
     triggerUpdate();
     return { success: true };
@@ -830,6 +851,10 @@ export const SynoxDB = {
       `Your transfer of $${transfer.amount.toLocaleString()} was declined. Reason: ${rejectReason}. Your funds have been returned to your balance.`,
       'bank'
     );
+
+    if (user) {
+      EmailService.sendTransferDeclined(user, transfer.amount, rejectReason).catch(console.error);
+    }
 
     triggerUpdate();
     return { success: true };

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { SynoxDB } from '../lib/synoxDB';
+import { EmailService } from '../lib/emailService';
 
 /* ── CoinGecko API Integration ────────────────────────────────── */
 const COINGECKO_API = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether,binancecoin,solana,ripple,cardano,dogecoin,matic-network,polkadot&vs_currencies=usd';
@@ -693,6 +694,13 @@ function BankingSection({ users, loadUsers }) {
                             : 'The restriction on your account has been lifted. You can now perform transactions normally.',
                           'bank'
                         );
+                        
+                        if (newStatus === 'Frozen') {
+                          EmailService.sendAccountFrozen(selectedUser).catch(console.error);
+                        } else {
+                          EmailService.sendAccountUnfrozen(selectedUser).catch(console.error);
+                        }
+
                         refreshSelectedUser(selectedUser.id);
                       }
                     }}

@@ -142,9 +142,9 @@ const WithdrawPage = () => {
           <div className="col-12 col-md-8 col-lg-6">
             
             {/* Header Section */}
-            <div className="text-center mb-5 animate__animated animate__fadeIn">
-              <h1 className="fw-bold mb-2" style={{ color: BRAND_BLUE, letterSpacing: '-1px' }}>Quick Withdrawal</h1>
-              <p className="text-muted">Safely withdraw your assets to your external wallet</p>
+            <div className="text-center mb-5 animate-fade-in-up">
+              <div className="page-header-subtitle">Crypto Hub</div>
+              <div className="page-header-title">Quick Withdrawal</div>
             </div>
 
             {/* Stepper */}
@@ -173,7 +173,7 @@ const WithdrawPage = () => {
               </div>
             )}
 
-            <div className="card border-0 shadow-lg rounded-4 overflow-hidden animate__animated animate__fadeInUp" style={{ background: '#fff' }}>
+            <div className="neo-card overflow-hidden animate-fade-in-up delay-100">
               <div className="card-body p-4 p-md-5">
                 
                 {/* STEP 1: AMOUNT */}
@@ -205,8 +205,7 @@ const WithdrawPage = () => {
                     </div>
                     
                     <button 
-                      className="btn btn-lg w-100 py-3 rounded-4 fw-bold shadow-sm transition-all"
-                      style={{ background: BRAND_BLUE, color: '#fff' }}
+                      className="btn-premium-navy w-100 py-3 d-flex justify-content-center align-items-center"
                       disabled={!isAmountValid}
                       onClick={() => setStep(2)}
                     >
@@ -268,8 +267,7 @@ const WithdrawPage = () => {
 
                         <div className="d-flex flex-column gap-3">
                           <button 
-                            className="btn btn-lg w-100 py-3 rounded-4 fw-bold shadow-sm"
-                            style={{ background: BRAND_BLUE, color: '#fff' }}
+                            className="btn-premium-navy w-100 py-3 d-flex justify-content-center align-items-center"
                             disabled={!walletAddress || walletAddress.length < 10}
                             onClick={handleRequestWithdrawal}
                           >
@@ -329,8 +327,7 @@ const WithdrawPage = () => {
                     
                     <div className="d-flex flex-column gap-3">
                       <button 
-                        className="btn btn-lg w-100 py-3 rounded-4 fw-bold shadow-sm"
-                        style={{ background: BRAND_BLUE, color: '#fff' }}
+                        className="btn-premium-navy w-100 py-3 d-flex justify-content-center align-items-center"
                         onClick={handleRequestWithdrawal}
                       >
                         Confirm Withdrawal <i className="fas fa-check-circle ms-2"></i>
@@ -370,8 +367,7 @@ const WithdrawPage = () => {
                     </div>
 
                     <button 
-                      className="btn btn-lg w-100 py-3 rounded-4 fw-bold shadow-sm"
-                      style={{ background: BRAND_BLUE, color: '#fff' }}
+                      className="btn-premium-navy w-100 py-3 d-flex justify-content-center align-items-center"
                       onClick={() => navigate('/dashboard/crypto')}
                     >
                       Return to Hub <i className="fas fa-home ms-2"></i>

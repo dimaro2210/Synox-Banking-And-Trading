@@ -70,14 +70,21 @@ const SettingsPage = () => {
 
   return (
     <DashboardLayout>
-      <div id="banking-settings-section" className="content-section animate__animated animate__fadeIn">
-        <div className="row g-4 mt-2">
+      <div id="banking-settings-section" className="content-section animate-fade-in-up">
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <div>
+            <div className="page-header-subtitle">Account</div>
+            <div className="page-header-title">Banking Settings</div>
+          </div>
+        </div>
+
+        <div className="row g-4">
           {/* Limits & Alerts (Now First) */}
           <div className="col-lg-6">
             <div className="row g-4 h-100">
               {/* Daily Limits */}
-              <div className="col-12">
-                <div className="glass-card bg-white p-4 p-md-5 rounded-xl shadow-sm border border-light">
+              <div className="col-12 delay-100 animate-fade-in-up">
+                <div className="neo-card p-4 p-md-5">
                   <h5 className="font-weight-bold mb-4 pb-3 border-bottom text-primary" style={{ color: '#002D72 !important' }}>
                     Transfer Limits
                   </h5>
@@ -102,7 +109,7 @@ const SettingsPage = () => {
                         <input type="number" className="form-control border-0 fw-bold shadow-none text-end" value={intlLimit} onChange={(e) => setIntlLimit(e.target.value)} disabled={limitLocked} />
                       </div>
                     </div>
-                    <button type="submit" disabled={limitLocked} className={`btn ${limitLocked ? 'btn-secondary' : 'btn-primary'} btn-sm rounded-pill mt-2 py-2 fw-bold w-100 shadow-sm transition-all`} style={{ background: limitLocked ? '#6c757d' : '#002D72', border: 'none' }}>
+                    <button type="submit" disabled={limitLocked} className={`btn-premium-navy w-100 mt-2 py-3 d-flex justify-content-center align-items-center transition-all`} style={{ background: limitLocked ? '#6c757d' : '', border: 'none' }}>
                       {limitLocked ? 'Pending 24h Approval' : 'Update Limits'}
                     </button>
                   </form>
@@ -110,8 +117,8 @@ const SettingsPage = () => {
               </div>
 
               {/* Notification Alerts */}
-              <div className="col-12 flex-grow-1">
-                <div className="glass-card bg-white p-4 p-md-5 rounded-xl shadow-sm border border-light h-100">
+              <div className="col-12 flex-grow-1 delay-200 animate-fade-in-up">
+                <div className="neo-card p-4 p-md-5 h-100">
                   <h5 className="font-weight-bold mb-4 pb-3 border-bottom text-primary" style={{ color: '#002D72 !important' }}>
                     Transaction Alerts
                   </h5>
@@ -142,8 +149,8 @@ const SettingsPage = () => {
           </div>
 
           {/* Account & Statement Preferences (Now Second) */}
-          <div className="col-lg-6">
-            <div className="glass-card bg-white p-4 p-md-5 rounded-xl shadow-sm border border-light h-100">
+          <div className="col-lg-6 delay-300 animate-fade-in-up">
+            <div className="neo-card p-4 p-md-5 h-100">
               <h5 className="font-weight-bold mb-4 pb-3 border-bottom text-primary" style={{ color: '#002D72 !important' }}>
                 Account Settings
               </h5>
@@ -179,7 +186,7 @@ const SettingsPage = () => {
                   <small className="text-muted d-block pe-4">Receive emails about new banking products, investment opportunities, and rate changes.</small>
                 </div>
 
-                <button type="submit" className="btn btn-primary rounded-pill py-3 px-5 fw-bold shadow-sm hover-opacity-80 transition-all w-100" style={{ background: '#002D72', border: 'none' }}>
+                <button type="submit" className="btn-premium-navy w-100 py-3 d-flex justify-content-center align-items-center mt-2">
                   Save Account Preferences
                 </button>
               </form>

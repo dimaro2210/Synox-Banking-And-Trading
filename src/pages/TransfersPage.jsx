@@ -161,17 +161,11 @@ const TransfersPage = () => {
           <div className="col-12 col-md-10 col-lg-7 col-xl-6">
 
             {/* Header */}
-            <div className="text-center mb-4 mb-md-5 animate__animated animate__fadeIn">
-              <h1 className="fw-bold mb-2" style={{ color: BRAND_BLUE, letterSpacing: '-1px', fontSize: 'clamp(1.5rem, 5vw, 2rem)' }}>
+            <div className="text-center mb-4 mb-md-5 animate-fade-in-up">
+              <div className="page-header-subtitle">Banking</div>
+              <div className="page-header-title">
                 {step <= 3 ? 'Send Money' : step === 4 ? 'Processing...' : 'Transfer Complete'}
-              </h1>
-              <p className="text-muted mb-0" style={{ fontSize: 'clamp(0.85rem, 3vw, 1rem)' }}>
-                {step === 1 && 'Enter recipient details and amount'}
-                {step === 2 && 'Review your transfer details'}
-                {step === 3 && 'Enter your Course of Transfer (COT) code'}
-                {step === 4 && ''}
-                {step === 5 && 'Your transfer is being processed and awaits approval'}
-              </p>
+              </div>
             </div>
 
             {/* Stepper */}
@@ -208,7 +202,7 @@ const TransfersPage = () => {
               </div>
             )}
 
-            <div className="card border-0 shadow-lg rounded-4 overflow-hidden animate__animated animate__fadeInUp" style={{ background: '#fff' }}>
+            <div className="neo-card overflow-hidden animate-fade-in-up delay-100">
               <div className="card-body p-3 p-sm-4 p-md-5">
 
                 {/* ═══════════ STEP 1: FORM ═══════════ */}
@@ -269,7 +263,7 @@ const TransfersPage = () => {
                           </div>
                         </div>
 
-                        <button type="submit" className="btn btn-lg w-100 py-3 rounded-4 fw-bold shadow-sm mt-4" style={{ background: BRAND_BLUE, color: '#fff', fontSize: 'clamp(0.9rem, 3.5vw, 1.05rem)' }}>
+                        <button type="submit" className="btn-premium-navy w-100 py-3 mt-4 d-flex justify-content-center align-items-center">
                           Continue to Review <i className="fas fa-arrow-right ms-2"></i>
                         </button>
                       </form>
@@ -322,7 +316,7 @@ const TransfersPage = () => {
                           </div>
                         </div>
 
-                        <button type="submit" className="btn btn-lg w-100 py-3 rounded-4 fw-bold shadow-sm mt-4" style={{ background: BRAND_BLUE, color: '#fff', fontSize: 'clamp(0.9rem, 3.5vw, 1.05rem)' }}>
+                        <button type="submit" className="btn-premium-navy w-100 py-3 mt-4 d-flex justify-content-center align-items-center">
                           Continue to Review <i className="fas fa-arrow-right ms-2"></i>
                         </button>
                       </form>
@@ -406,7 +400,7 @@ const TransfersPage = () => {
                     </div>
 
                     <div className="d-flex flex-column gap-3">
-                      <button className="btn btn-lg w-100 py-3 rounded-4 fw-bold shadow-sm" style={{ background: BRAND_BLUE, color: '#fff' }} onClick={handleProceedToVerify}>
+                      <button className="btn-premium-navy w-100 py-3 d-flex justify-content-center align-items-center" onClick={handleProceedToVerify}>
                         Proceed to Verification <i className="fas fa-lock ms-2"></i>
                       </button>
                       <button className="btn btn-link text-muted fw-bold text-decoration-none" onClick={() => setStep(1)}>
@@ -463,7 +457,7 @@ const TransfersPage = () => {
                     </div>
 
                     <div className="d-flex flex-column gap-3">
-                      <button className="btn btn-lg w-100 py-3 rounded-4 fw-bold shadow-sm" style={{ background: BRAND_BLUE, color: '#fff' }} onClick={handleCOTSubmit} disabled={!cotCode}>
+                      <button className="btn-premium-navy w-100 py-3 d-flex justify-content-center align-items-center" onClick={handleCOTSubmit} disabled={!cotCode}>
                         Authorize Transfer <i className="fas fa-check-circle ms-2"></i>
                       </button>
                       <button className="btn btn-link text-muted fw-bold text-decoration-none" onClick={() => setStep(2)}>
@@ -519,7 +513,7 @@ const TransfersPage = () => {
                     </div>
 
                     <div className="d-flex flex-column gap-3">
-                      <button className="btn btn-lg w-100 py-3 rounded-4 fw-bold shadow-sm" style={{ background: BRAND_BLUE, color: '#fff' }} onClick={() => navigate('/dashboard')}>
+                      <button className="btn-premium-navy w-100 py-3 d-flex justify-content-center align-items-center" onClick={() => navigate('/dashboard')}>
                         Back to Dashboard <i className="fas fa-home ms-2"></i>
                       </button>
                       <button className="btn btn-link text-muted fw-bold text-decoration-none" onClick={resetFlow}>

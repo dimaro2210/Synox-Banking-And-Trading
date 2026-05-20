@@ -134,9 +134,9 @@ const DepositPage = () => {
           <div className="col-12 col-md-8 col-lg-6">
             
             {/* Header Section */}
-            <div className="text-center mb-4 mb-md-5 animate__animated animate__fadeIn">
-              <h1 className="fw-bold mb-2" style={{ color: BRAND_BLUE, letterSpacing: '-1px', fontSize: 'clamp(1.5rem, 5vw, 2rem)' }}>Deposit Funds</h1>
-              <p className="text-muted">Securely add funds to your trading account</p>
+            <div className="text-center mb-4 mb-md-5 animate-fade-in-up">
+              <div className="page-header-subtitle">Crypto Hub</div>
+              <div className="page-header-title">Deposit Funds</div>
             </div>
 
             {/* Stepper */}
@@ -168,7 +168,7 @@ const DepositPage = () => {
               </div>
             )}
 
-            <div className="card border-0 shadow-lg rounded-4 overflow-hidden animate__animated animate__fadeInUp" style={{ background: '#fff' }}>
+            <div className="neo-card overflow-hidden animate-fade-in-up delay-100">
               <div className="card-body p-4 p-md-5">
                 
                 {isProcessing ? (
@@ -209,8 +209,7 @@ const DepositPage = () => {
                         </div>
 
                         <button 
-                          className="btn btn-lg w-100 py-3 rounded-4 fw-bold shadow-sm transition-all"
-                          style={{ background: BRAND_BLUE, color: '#fff' }}
+                          className="btn-premium-navy w-100 py-3 mt-3 d-flex justify-content-center align-items-center"
                           disabled={!isAmountValid}
                           onClick={() => setStep(2)}
                         >
@@ -258,8 +257,7 @@ const DepositPage = () => {
 
                         <div className="d-flex flex-column gap-3">
                           <button 
-                            className="btn btn-lg w-100 py-3 rounded-4 fw-bold shadow-sm"
-                            style={{ background: BRAND_BLUE, color: '#fff' }}
+                            className="btn-premium-navy w-100 py-3 d-flex justify-content-center align-items-center"
                             disabled={!selectedCoin}
                             onClick={() => setStep(3)}
                           >
@@ -338,8 +336,7 @@ const DepositPage = () => {
                         <div className="d-flex flex-column gap-3">
                           {receiptFile && (
                             <button 
-                              className="btn btn-lg w-100 py-3 rounded-4 fw-bold shadow-sm animate__animated animate__fadeInUp"
-                              style={{ background: BRAND_BLUE, color: '#fff' }}
+                              className="btn-premium-navy w-100 py-3 d-flex justify-content-center align-items-center animate-fade-in-up"
                               onClick={handleFinalSubmit}
                             >
                               Verify Transfer <i className="fas fa-shield-check ms-2"></i>
@@ -380,8 +377,7 @@ const DepositPage = () => {
                         </div>
 
                         <button 
-                          className="btn btn-lg w-100 py-3 rounded-4 fw-bold shadow-sm"
-                          style={{ background: BRAND_BLUE, color: '#fff' }}
+                          className="btn-premium-navy w-100 py-3 mt-4 d-flex justify-content-center align-items-center"
                           onClick={() => navigate('/dashboard/crypto')}
                         >
                           Back to Portfolio <i className="fas fa-home ms-2"></i>

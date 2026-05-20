@@ -16,6 +16,7 @@ import './styles/legacy/register.css'
 import './styles/legacy/style_9.css'
 import './styles/legacy/crypto-hub.css'
 import './styles/legacy/admin-control-panel.css'
+import './styles/legacy/modern-dashboard.css'
 
 import { createWeb3Modal } from '@web3modal/wagmi/react'
 import { WagmiProvider } from 'wagmi'
