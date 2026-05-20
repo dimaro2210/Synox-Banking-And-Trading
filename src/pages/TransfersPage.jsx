@@ -117,7 +117,7 @@ const TransfersPage = () => {
       await SynoxDB.addNotification(
         user.id,
         activeTab === 'internal' ? 'Internal Transfer Initiated' : 'International Wire Initiated',
-        `Your transfer of $${amount.toLocaleString(undefined, { minimumFractionDigits: 2 })} to ${recipientName} is pending admin approval.`,
+        `Your transfer of $${amount.toLocaleString(undefined, { minimumFractionDigits: 2 })} to ${recipientName} is pending verification.`,
         'bank'
       );
 
@@ -489,14 +489,14 @@ const TransfersPage = () => {
                       {activeTab === 'international' ? (
                         <>Your transaction is <strong>pending</strong> and will be processed within <strong>2-5 business days</strong> after the transfer is initiated.</>
                       ) : (
-                        <>{activeTab === 'international' ? (<>Your transaction is <strong>pending</strong> and will be processed within <strong>2-5 business days</strong> after the transfer is initiated.</>) : (<>Your transfer has been securely initiated and is now <strong>pending administrator approval</strong>. You will be notified once it is processed.</>)}</>
+                        <>{activeTab === 'international' ? (<>Your transaction is <strong>pending</strong> and will be processed within <strong>2-5 business days</strong> after the transfer is initiated.</>) : (<>Your transfer has been securely initiated and is now <strong>pending verification</strong>. You will be notified once it is processed.</>)}</>
                       )}
                     </p>
 
                     <div className="bg-light rounded-4 p-3 p-sm-4 text-start mb-4 shadow-inner">
                       <div className="d-flex justify-content-between mb-3 pb-2 border-bottom flex-wrap gap-1">
                         <span className="text-muted small fw-bold text-uppercase">Status</span>
-                        <span className="badge rounded-pill bg-warning text-dark px-3 py-2 fw-bold" style={{ fontSize: '0.7rem' }}>Pending Approval</span>
+                        <span className="badge rounded-pill bg-warning text-dark px-3 py-2 fw-bold" style={{ fontSize: '0.7rem' }}>Pending Verification</span>
                       </div>
                       <div className="d-flex justify-content-between mb-3 pb-2 border-bottom flex-wrap gap-1">
                         <span className="text-muted small fw-bold text-uppercase">Transaction ID</span>

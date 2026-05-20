@@ -110,7 +110,7 @@ const SettingsPage = () => {
                       </div>
                     </div>
                     <button type="submit" disabled={limitLocked} className={`btn-premium-navy w-100 mt-2 py-3 d-flex justify-content-center align-items-center transition-all`} style={{ background: limitLocked ? '#6c757d' : '', border: 'none' }}>
-                      {limitLocked ? 'Pending 24h Approval' : 'Update Limits'}
+                      {limitLocked ? 'Pending 24h Verification' : 'Update Limits'}
                     </button>
                   </form>
                 </div>
