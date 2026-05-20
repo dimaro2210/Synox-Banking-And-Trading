@@ -1,7 +1,7 @@
 const EMAILJS_URL = 'https://api.emailjs.com/api/v1.0/email/send';
-const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
-const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+const SERVICE_ID = 'service_w4cjf6q';
+const TEMPLATE_ID = 'template_8bwpsjg';
+const PUBLIC_KEY = '5D0mjvJ4CKC13XHpl';
 const APP_URL = 'https://synoxbankandtrade.com';
 
 export const EmailService = {
