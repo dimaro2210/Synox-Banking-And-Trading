@@ -682,7 +682,9 @@ function BankingSection({ users, loadUsers }) {
                   <button 
                     className={`admin-btn ${selectedUser.status === 'Frozen' ? 'admin-btn-green' : 'admin-btn-red'}`}
                     style={selectedUser.status !== 'Frozen' ? { background: 'var(--admin-red)', color: '#fff' } : {}}
+                    disabled={selectedUser.isProcessing}
                     onClick={async () => {
+                      setSelectedUser({ ...selectedUser, isProcessing: true });
                       const newStatus = selectedUser.status === 'Frozen' ? 'Active' : 'Frozen';
                       const ok = await SynoxDB.updateUser(selectedUser.id, { status: newStatus });
                       if (ok) {
@@ -1321,12 +1323,20 @@ function DepositsSection({ users, marketPrices }) {
 
   useEffect(() => { loadDeposits(); }, []);
 
+  const [isProcessing, setIsProcessing] = useState(false);
+
   const handleAccept = async (deposit) => {
-    const cryptoAmount = deposit.amount / (marketPrices[deposit.asset]?.usd || INITIAL_MARKET_DATA[deposit.asset]?.usd || 1);
-    await SynoxDB.acceptPendingDeposit(deposit.id, cryptoAmount);
-    showToast(`Deposit approved. User credited ${cryptoAmount.toFixed(6)} ${deposit.asset}.`);
-    setSelectedDeposit(null);
-    loadDeposits();
+    if (isProcessing) return;
+    setIsProcessing(true);
+    try {
+      const cryptoAmount = deposit.amount / (marketPrices[deposit.asset]?.usd || INITIAL_MARKET_DATA[deposit.asset]?.usd || 1);
+      await SynoxDB.acceptPendingDeposit(deposit.id, cryptoAmount);
+      showToast(`Deposit approved. User credited ${cryptoAmount.toFixed(6)} ${deposit.asset}.`);
+      setSelectedDeposit(null);
+      loadDeposits();
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleReject = async (deposit) => {
@@ -1334,12 +1344,18 @@ function DepositsSection({ users, marketPrices }) {
       alert("Please provide a rejection reason.");
       return;
     }
-    await SynoxDB.rejectPendingDeposit(deposit.id, rejectReason);
-    showToast('Deposit rejected.');
-    setIsRejecting(false);
-    setRejectReason('');
-    setSelectedDeposit(null);
-    loadDeposits();
+    if (isProcessing) return;
+    setIsProcessing(true);
+    try {
+      await SynoxDB.rejectPendingDeposit(deposit.id, rejectReason);
+      showToast('Deposit rejected.');
+      setIsRejecting(false);
+      setRejectReason('');
+      setSelectedDeposit(null);
+      loadDeposits();
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const getUser = (id) => users.find(u => u.id === id) || {};
@@ -1438,11 +1454,11 @@ function DepositsSection({ users, marketPrices }) {
                 </div>
               ) : (
                 <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
-                  <button className="admin-btn admin-btn-ghost" style={{ flex: 1, color: 'var(--admin-red)', borderColor: 'rgba(239,68,68,0.2)' }} onClick={() => setIsRejecting(true)}>
+                  <button className="admin-btn admin-btn-ghost" style={{ flex: 1, color: 'var(--admin-red)', borderColor: 'rgba(239,68,68,0.2)' }} disabled={isProcessing} onClick={() => setIsRejecting(true)}>
                     <i className="fas fa-times me-1" /> Reject
                   </button>
-                  <button className="admin-btn admin-btn-gold" style={{ flex: 2 }} onClick={() => handleAccept(selectedDeposit)}>
-                    <i className="fas fa-check me-1" /> Approve & Credit
+                  <button className="admin-btn admin-btn-gold" style={{ flex: 2 }} disabled={isProcessing} onClick={() => handleAccept(selectedDeposit)}>
+                    <i className="fas fa-check me-1" /> {isProcessing ? 'Processing...' : 'Approve & Credit'}
                   </button>
                 </div>
               )}
@@ -1467,6 +1483,7 @@ function TransfersSection({ users }) {
   const [rejectReason, setRejectReason] = useState('');
   const [isRejecting, setIsRejecting] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const showToast = (msg) => {
     setToast(msg);
@@ -1483,13 +1500,19 @@ function TransfersSection({ users }) {
   useEffect(() => { loadTransfers(); }, []);
 
   const handleApprove = async (transferId) => {
-    const res = await SynoxDB.approveBankTransfer(transferId);
-    if (res.success) {
-      showToast('Transfer approved successfully.');
-      setSelectedTransfer(null);
-      loadTransfers();
-    } else {
-      alert(res.error || 'Failed to approve transfer.');
+    if (isProcessing) return;
+    setIsProcessing(true);
+    try {
+      const res = await SynoxDB.approveBankTransfer(transferId);
+      if (res.success) {
+        showToast('Transfer approved successfully.');
+        setSelectedTransfer(null);
+        loadTransfers();
+      } else {
+        alert(res.error || 'Failed to approve transfer.');
+      }
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -1498,15 +1521,21 @@ function TransfersSection({ users }) {
       alert("Please provide a reason for declining.");
       return;
     }
-    const res = await SynoxDB.declineBankTransfer(transferId, rejectReason);
-    if (res.success) {
-      showToast('Transfer declined and funds refunded.');
-      setIsRejecting(false);
-      setRejectReason('');
-      setSelectedTransfer(null);
-      loadTransfers();
-    } else {
-      alert(res.error || 'Failed to decline transfer.');
+    if (isProcessing) return;
+    setIsProcessing(true);
+    try {
+      const res = await SynoxDB.declineBankTransfer(transferId, rejectReason);
+      if (res.success) {
+        showToast('Transfer declined and funds returned.');
+        setIsRejecting(false);
+        setRejectReason('');
+        setSelectedTransfer(null);
+        loadTransfers();
+      } else {
+        alert(res.error || 'Failed to decline transfer.');
+      }
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -1611,11 +1640,11 @@ function TransfersSection({ users }) {
                 </div>
               ) : (
                 <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
-                  <button className="admin-btn admin-btn-ghost" style={{ flex: 1, color: 'var(--admin-red)', borderColor: 'rgba(239,68,68,0.2)' }} onClick={() => setIsRejecting(true)}>
+                  <button className="admin-btn admin-btn-ghost" style={{ flex: 1, color: 'var(--admin-red)', borderColor: 'rgba(239,68,68,0.2)' }} disabled={isProcessing} onClick={() => setIsRejecting(true)}>
                     <i className="fas fa-times me-1" /> Decline
                   </button>
-                  <button className="admin-btn admin-btn-gold" style={{ flex: 2 }} onClick={() => handleApprove(selectedTransfer.id)}>
-                    <i className="fas fa-check me-1" /> Approve & Process
+                  <button className="admin-btn admin-btn-gold" style={{ flex: 2 }} disabled={isProcessing} onClick={() => handleApprove(selectedTransfer.id)}>
+                    <i className="fas fa-check me-1" /> {isProcessing ? 'Processing...' : 'Approve & Process'}
                   </button>
                 </div>
               )}
