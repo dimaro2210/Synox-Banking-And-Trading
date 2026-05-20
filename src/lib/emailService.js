@@ -7,6 +7,14 @@ const APP_URL = 'https://synoxbankandtrade.com';
 export const EmailService = {
   sendEmail: async (templateParams) => {
     try {
+      // Inject standard variables if not provided
+      const finalParams = {
+        date: new Date().toLocaleString(),
+        ref_id: 'SYN-' + Math.floor(Math.random() * 1000000000).toString().padStart(9, '0'),
+        status: templateParams.status || 'Successful',
+        ...templateParams
+      };
+
       const response = await fetch(EMAILJS_URL, {
         method: 'POST',
         headers: {
@@ -16,7 +24,7 @@ export const EmailService = {
           service_id: SERVICE_ID,
           template_id: TEMPLATE_ID,
           user_id: PUBLIC_KEY,
-          template_params: templateParams,
+          template_params: finalParams,
         }),
       });
 
@@ -56,6 +64,7 @@ export const EmailService = {
       heading: 'Application Not Approved',
       status_icon: '❌',
       icon_bg_color: '#fee2e2',
+      status: 'Failed',
       message: 'We regret to inform you that your account application was not approved at this time.',
       details: `Reason: ${reason}`,
       action_url: `${APP_URL}/register`,
@@ -86,6 +95,7 @@ export const EmailService = {
       heading: 'Deposit Not Approved',
       status_icon: '❌',
       icon_bg_color: '#fee2e2',
+      status: 'Failed',
       message: 'Your recent deposit could not be verified.',
       details: `Amount: $${amount.toLocaleString()} | Reason: ${reason}`,
       action_url: `${APP_URL}/dashboard`,
@@ -116,6 +126,7 @@ export const EmailService = {
       heading: 'Transfer Declined',
       status_icon: '❌',
       icon_bg_color: '#fee2e2',
+      status: 'Failed',
       message: 'Your bank transfer was declined. Your funds have been returned to your balance.',
       details: `Amount: $${amount.toLocaleString()} | Reason: ${reason}`,
       action_url: `${APP_URL}/dashboard`,
@@ -131,6 +142,7 @@ export const EmailService = {
       heading: 'Account Restricted',
       status_icon: '🔒',
       icon_bg_color: '#ffedd5',
+      status: 'Restricted',
       message: 'Your account has been temporarily restricted by our security department.',
       details: 'Please contact support for more information.',
       action_url: `${APP_URL}/login`,
