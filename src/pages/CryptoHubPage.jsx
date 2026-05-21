@@ -329,8 +329,8 @@ const CryptoHubPage = () => {
       const freshCryptoBalances = freshUser.crypto_balances || { BTC: 0, ETH: 0, USDT: 0 };
       const cryptoAmount = amount / (marketData[selectedAsset]?.usd || INITIAL_MARKET_DATA[selectedAsset].usd);
       const newBalances = { ...freshCryptoBalances, [selectedAsset]: Math.max(0, (freshCryptoBalances[selectedAsset] || 0) - cryptoAmount) };
+      // Only update crypto_balances here; addTransaction will handle the bank balance credit
       await SynoxDB.updateUser(user.id, { crypto_balances: newBalances, balance: freshUser.balance + amount });
-      await SynoxDB.addTransaction(user.id, 'credit', amount, `Crypto to Bank Transfer — ${selectedAsset}`);
       await SynoxDB.addNotification(user.id, 'Crypto to Bank Transfer', `Successfully transferred $${amount.toLocaleString()} worth of ${selectedAsset} to your bank account.`, 'bank');
       await SynoxDB.addNotification(user.id, 'Crypto Withdrawal to Bank', `Withdrawn $${amount.toLocaleString()} worth of ${selectedAsset} to bank account.`, 'crypto');
       setModalProcessing(false);
@@ -676,10 +676,6 @@ const CryptoHubPage = () => {
                             <div className="crypto-action-btn-icon" style={{ background: 'rgba(0,45,114,0.1)', color: '#002D72' }}><i className="fas fa-university"></i></div>
                             <span className="crypto-action-btn-label">To Bank</span>
                           </button>
-                          <button className="crypto-action-btn" onClick={() => openModal('buy')}>
-                            <div className="crypto-action-btn-icon buy"><i className="fas fa-cart-plus"></i></div>
-                            <span className="crypto-action-btn-label">Buy</span>
-                          </button>
                         </div>
                         <div className="crypto-stats-grid mt-4 mt-lg-0">
                           {[
@@ -902,6 +898,118 @@ const CryptoHubPage = () => {
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Transfer to Bank Modal */}
+      {showTransferToBankModal && (
+        <>
+          <div
+            className="position-fixed top-0 start-0 w-100 h-100"
+            style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 3000, backdropFilter: 'blur(4px)' }}
+            onClick={closeAllModals}
+          ></div>
+          <div
+            className="position-fixed bottom-0 start-0 w-100 bg-white shadow-lg p-4"
+            style={{
+              zIndex: 3001,
+              borderTopLeftRadius: '30px',
+              borderTopRightRadius: '30px',
+              animation: 'slideUp 0.4s ease-out forwards',
+              maxHeight: '80vh',
+              overflowY: 'auto'
+            }}
+          >
+            <div className="container" style={{ maxWidth: '500px' }}>
+              <div className="text-center mb-3">
+                <div className="mx-auto bg-light mb-3" style={{ width: '50px', height: '6px', borderRadius: '3px' }}></div>
+              </div>
+
+              {modalSuccess ? (
+                <div className="text-center py-4 animate__animated animate__zoomIn">
+                  <div className="bg-success text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3 shadow-lg" style={{ width: '70px', height: '70px' }}>
+                    <i className="fas fa-check fs-3"></i>
+                  </div>
+                  <h5 className="fw-bold mb-2" style={{ color: '#002d72' }}>Transfer Complete</h5>
+                  <p className="text-muted small mb-4">Funds have been moved to your bank account instantly.</p>
+                  <button className="btn-premium-navy w-100 py-3" onClick={closeAllModals}>
+                    Done <i className="fas fa-check-circle ms-2"></i>
+                  </button>
+                </div>
+              ) : modalProcessing ? (
+                <div className="text-center py-5">
+                  <div className="spinner-border mb-4" style={{ width: '3rem', height: '3rem', color: '#002d72', borderWidth: '3px' }} role="status"></div>
+                  <h5 className="fw-bold mb-2" style={{ color: '#002d72' }}>Processing Transfer</h5>
+                  <p className="text-muted small">Moving funds to your bank account...</p>
+                </div>
+              ) : (
+                <>
+                  <div className="text-center mb-4">
+                    <div className="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style={{ width: '60px', height: '60px', background: 'rgba(0,45,114,0.1)' }}>
+                      <i className="fas fa-university fs-4" style={{ color: '#002d72' }}></i>
+                    </div>
+                    <h5 className="fw-bold mb-1">Transfer to Bank</h5>
+                    <p className="text-muted small">Move funds from your crypto portfolio to your bank account</p>
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="form-label fw-bold small text-muted text-uppercase">Select Asset</label>
+                    <div className="d-flex gap-2 flex-wrap">
+                      {Object.entries(cryptoBalances).filter(([, amt]) => amt > 0).map(([asset]) => (
+                        <button
+                          key={asset}
+                          className={`btn btn-sm px-3 py-2 fw-bold rounded-pill ${selectedAsset === asset ? 'btn-primary' : 'btn-outline-secondary'}`}
+                          style={selectedAsset === asset ? { background: '#002d72', border: 'none' } : {}}
+                          onClick={() => setSelectedAsset(asset)}
+                        >
+                          {asset}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mb-3">
+                    <label className="form-label fw-bold small text-muted text-uppercase">Amount (USD)</label>
+                    <div className="bg-light rounded-3 p-1">
+                      <div className="input-group">
+                        <span className="input-group-text bg-transparent border-0 fw-bold text-muted">$</span>
+                        <input
+                          type="number"
+                          className="form-control bg-transparent border-0 py-3 fs-4 fw-bold"
+                          placeholder="0.00"
+                          value={modalAmount}
+                          onChange={(e) => setModalAmount(e.target.value)}
+                          style={{ color: '#002d72' }}
+                        />
+                      </div>
+                    </div>
+                    <div className="d-flex justify-content-between mt-2">
+                      <span className="text-muted" style={{ fontSize: '0.75rem' }}>Available: ${totalCryptoValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                      <button className="btn btn-link btn-sm p-0 text-decoration-none fw-bold" style={{ color: '#002d72', fontSize: '0.75rem' }} onClick={() => setModalAmount(String(totalCryptoValue.toFixed(2)))}>Max</button>
+                    </div>
+                    {modalAmount && parseFloat(modalAmount) > totalCryptoValue && (
+                      <div className="text-danger small mt-1 fw-bold">
+                        <i className="fas fa-exclamation-circle me-1"></i> Exceeds available balance
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="d-grid gap-2 mt-4">
+                    <button
+                      className="btn-premium-navy w-100 py-3 d-flex justify-content-center align-items-center"
+                      disabled={!modalAmount || parseFloat(modalAmount) <= 0 || parseFloat(modalAmount) > totalCryptoValue}
+                      onClick={handleTransferToBank}
+                    >
+                      Transfer to Bank <i className="fas fa-arrow-right ms-2"></i>
+                    </button>
+                    <button className="btn btn-link text-muted fw-bold text-decoration-none" onClick={closeAllModals}>
+                      Cancel
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </>

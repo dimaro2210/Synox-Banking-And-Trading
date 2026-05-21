@@ -886,10 +886,6 @@ function BankingSection({ users, loadUsers }) {
                     <p>{selectedUser.crypto_enrolled || selectedUser.crypto_wallet ? 'Yes' : 'No'}</p>
                   </div>
                   <div className="admin-detail-item">
-                    <label>Trading Balance Total</label>
-                    <p>${fmt(selectedUser.trading_balance_total || 0)}</p>
-                  </div>
-                  <div className="admin-detail-item">
                     <label>Trading Profit</label>
                     <p>${fmt(selectedUser.trading_balance_profit || 0)}</p>
                   </div>
@@ -1070,7 +1066,7 @@ function TradingSection({ users }) {
 
         {/* Trading Balance Card */}
         <div className="admin-trading-balance-card">
-          <div className="admin-tbc-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+          <div className="admin-tbc-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
             <div>
               <div className="admin-tbc-label"><i className="fas fa-wallet me-2" />Deposit Balance</div>
               <div className="admin-tbc-value">${fmt(selectedUser.deposit_balance || 0)}</div>
@@ -1078,10 +1074,6 @@ function TradingSection({ users }) {
             <div>
               <div className="admin-tbc-label"><i className="fas fa-chart-line me-2" />Profit Balance</div>
               <div className="admin-tbc-value" style={{ color: 'var(--admin-green)' }}>${fmt(selectedUser.trading_balance_profit || 0)}</div>
-            </div>
-            <div>
-              <div className="admin-tbc-label"><i className="fas fa-coins me-2" />Trading Total</div>
-              <div className="admin-tbc-value" style={{ color: 'var(--admin-gold)' }}>${fmt(selectedUser.trading_balance_total || 0)}</div>
             </div>
             <div>
               <div className="admin-tbc-label"><i className="fas fa-signal me-2" />Signal Strength</div>
@@ -1324,7 +1316,6 @@ function TradingSection({ users }) {
             <thead>
               <tr>
                 <th>User</th>
-                <th>Trading Balance</th>
                 <th>Trading Profit</th>
                 <th>Holdings Value</th>
                 <th>Status</th>
@@ -1333,7 +1324,7 @@ function TradingSection({ users }) {
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={6}><div className="admin-empty"><i className="fas fa-users" /><p>No users found</p></div></td></tr>
+                <tr><td colSpan={5}><div className="admin-empty"><i className="fas fa-users" /><p>No users found</p></div></td></tr>
               ) : filtered.map(u => {
                 const holdingsVal = Object.entries(u.crypto_balances || {}).reduce((s, [k, v]) => s + v * (u.marketPrices?.[k]?.usd || INITIAL_MARKET_DATA[k]?.usd || 0), 0);
                 return (
@@ -1353,7 +1344,6 @@ function TradingSection({ users }) {
                         </div>
                       </div>
                     </td>
-                    <td><strong style={{ color: 'var(--admin-gold)' }}>${fmt(u.trading_balance_total || 0)}</strong></td>
                     <td><strong style={{ color: 'var(--admin-green)' }}>${fmt(u.trading_balance_profit || 0)}</strong></td>
                     <td>${fmt(holdingsVal)}</td>
                     <td>
