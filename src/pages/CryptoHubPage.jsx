@@ -173,6 +173,9 @@ const CryptoHubPage = () => {
 
   // Live Market Data state
   const [marketData, setMarketData] = useState(INITIAL_MARKET_DATA);
+  const [liveCryptoData, setLiveCryptoData] = useState([]);
+  const [cryptoNews, setCryptoNews] = useState([]);
+  const [loadingMarket, setLoadingMarket] = useState(true);
 
   const loadUserData = useCallback(async () => {
     const userId = sessionStorage.getItem('synox_user_id');
@@ -201,6 +204,7 @@ const CryptoHubPage = () => {
     loadUserData();
     loadUserTrades();
     document.body.className = 'crypto-body';
+    
     // Poll for new trades every 8 seconds
     const pollInterval = setInterval(async () => {
       // Auto-settle expired trades
@@ -208,32 +212,54 @@ const CryptoHubPage = () => {
       if (trades && trades.open_trades) {
         for (const trade of trades.open_trades) {
           if (new Date(trade.expires_at) <= Date.now()) {
-            // Auto close trade
             await SynoxDB.closeTrade(trade.id);
           }
         }
       }
-
       loadUserData();
       loadUserTrades();
     }, 8000);
 
-    // Fetch live market data
+    // Fetch static CoinGecko for marketData
     const fetchMarketData = async () => {
       try {
         const res = await fetch(COINGECKO_API);
         const data = await res.json();
         const formattedData = {};
         for (const [id, stats] of Object.entries(data)) {
-          formattedData[ASSET_MAP[id]] = stats;
+          if (ASSET_MAP[id]) {
+            formattedData[ASSET_MAP[id]] = stats;
+          }
         }
         setMarketData(prev => ({ ...prev, ...formattedData }));
       } catch (err) {
-        console.error("Failed to fetch live market data", err);
+        console.error("Failed to fetch static market data", err);
       }
     };
     fetchMarketData();
-    const marketInterval = setInterval(fetchMarketData, 60000); // 1 minute
+    const marketInterval = setInterval(fetchMarketData, 60000);
+
+    // Fetch new Live Market Data and News
+    const fetchLiveData = async () => {
+      try {
+        const marketRes = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=6&page=1&sparkline=false');
+        if (marketRes.ok) {
+          const mData = await marketRes.json();
+          setLiveCryptoData(mData);
+        }
+        const newsRes = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https://cointelegraph.com/rss');
+        if (newsRes.ok) {
+          const nData = await newsRes.json();
+          setCryptoNews(nData.items?.slice(0, 4) || []);
+        }
+      } catch (err) {
+        console.error("Error fetching live news/crypto data", err);
+      } finally {
+        setLoadingMarket(false);
+      }
+    };
+    fetchLiveData();
+    const liveDataInterval = setInterval(fetchLiveData, 60000);
 
     const handleUpdate = () => {
       loadUserData();
@@ -245,6 +271,7 @@ const CryptoHubPage = () => {
       document.body.className = '';
       clearInterval(pollInterval);
       clearInterval(marketInterval);
+      clearInterval(liveDataInterval);
       window.removeEventListener('synox_updated', handleUpdate);
     };
   }, [loadUserData, loadUserTrades]);
@@ -707,6 +734,62 @@ const CryptoHubPage = () => {
                                 <span className="crypto-stat-label">{stat.label}</span>
                               </div>
                               <div className="crypto-stat-value">{stat.value}</div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Live Market Overview */}
+                        <div className="mt-5 mb-4 d-flex justify-content-between align-items-end">
+                          <div>
+                            <h5 className="fw-bold mb-1 text-dark" style={{ fontFamily: "'Inter', sans-serif" }}>Live Market Overview</h5>
+                            <p className="text-muted small mb-0">Real-time cryptocurrency prices</p>
+                          </div>
+                          {loadingMarket && <div className="spinner-border spinner-border-sm text-primary" role="status"></div>}
+                        </div>
+
+                        <div className="row g-3 mb-5">
+                          {liveCryptoData.map((coin) => (
+                            <div key={coin.id} className="col-12 col-md-6 col-lg-4">
+                              <div className="bg-white rounded-4 p-3 border shadow-sm h-100" style={{ transition: 'transform 0.2s', cursor: 'pointer' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
+                                <div className="d-flex justify-content-between align-items-center mb-2">
+                                  <div className="d-flex align-items-center gap-2">
+                                    <img src={coin.image} alt={coin.name} style={{ width: 28, height: 28, borderRadius: '50%' }} />
+                                    <div className="fw-bold text-dark">{coin.symbol.toUpperCase()}</div>
+                                  </div>
+                                  <div className={`fw-bold small ${coin.price_change_percentage_24h >= 0 ? 'text-success' : 'text-danger'}`}>
+                                    {coin.price_change_percentage_24h >= 0 ? '+' : ''}{coin.price_change_percentage_24h?.toFixed(2)}%
+                                  </div>
+                                </div>
+                                <div className="fs-5 fw-bold text-dark mb-1">${coin.current_price?.toLocaleString()}</div>
+                                <div className="small text-muted">Vol: ${(coin.total_volume / 1000000).toFixed(1)}M</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Latest Crypto News */}
+                        <div className="mt-5 mb-4">
+                          <h5 className="fw-bold mb-1 text-dark" style={{ fontFamily: "'Inter', sans-serif" }}>Latest Crypto News</h5>
+                          <p className="text-muted small mb-0">Market updates from Cointelegraph</p>
+                        </div>
+
+                        <div className="row g-3 mb-4">
+                          {cryptoNews.map((news, idx) => (
+                            <div key={idx} className="col-12 col-md-6">
+                              <a href={news.link} target="_blank" rel="noopener noreferrer" className="text-decoration-none">
+                                <div className="bg-white rounded-4 border shadow-sm overflow-hidden h-100 d-flex flex-column" style={{ transition: 'box-shadow 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 .5rem 1rem rgba(0,0,0,.15)'} onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 .125rem .25rem rgba(0,0,0,.075)'}>
+                                  <div style={{ height: '140px', overflow: 'hidden' }}>
+                                    <img src={news.thumbnail} alt="News" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                  </div>
+                                  <div className="p-3 d-flex flex-column flex-grow-1">
+                                    <h6 className="fw-bold text-dark mb-2" style={{ fontSize: '0.95rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{news.title}</h6>
+                                    <div className="mt-auto small text-muted d-flex justify-content-between align-items-center">
+                                      <span>{new Date(news.pubDate).toLocaleDateString()}</span>
+                                      <span className="text-primary fw-bold" style={{ fontSize: '0.8rem' }}>Read <i className="fas fa-arrow-right ms-1"></i></span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </a>
                             </div>
                           ))}
                         </div>
