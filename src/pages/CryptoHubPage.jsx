@@ -617,42 +617,44 @@ const CryptoHubPage = () => {
                         <div className="row g-3 mb-4">
                           <div className="col-12 col-md-6">
                             <div className="crypto-balance-card h-100" style={{ marginBottom: 0 }}>
-                            <div className="position-absolute" style={{ top: '-20px', right: '-20px', opacity: 0.08, zIndex: 0, pointerEvents: 'none' }}>
-                              <i className="fab fa-bitcoin text-white" style={{ fontSize: '180px' }}></i>
-                            </div>
-                            <div className="crypto-balance-header">
-                              <div>
-                                <div className="crypto-balance-label">Deposit Balance</div>
-                                <div className="crypto-balance-greeting">Funds deposited</div>
+                              <div className="position-absolute" style={{ top: '-20px', right: '-20px', opacity: 0.08, zIndex: 0, pointerEvents: 'none' }}>
+                                <i className="fab fa-bitcoin text-white" style={{ fontSize: '180px' }}></i>
                               </div>
-                              <div className="crypto-balance-eye" onClick={() => setShowBalance(!showBalance)}>
-                                <i className={`fas ${showBalance ? 'fa-eye' : 'fa-eye-slash'}`}></i>
+                              <div className="crypto-balance-header">
+                                <div>
+                                  <div className="crypto-balance-label">Deposit Balance</div>
+                                  <div className="crypto-balance-greeting">Funds deposited</div>
+                                </div>
+                                <div className="crypto-balance-eye" onClick={() => setShowBalance(!showBalance)}>
+                                  <i className={`fas ${showBalance ? 'fa-eye' : 'fa-eye-slash'}`}></i>
+                                </div>
                               </div>
-                            </div>
-                            <div className="crypto-balance-amount">
-                              {showBalance ? `$${(user.deposit_balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '••••••'}
-                            </div>
-                            <div className="crypto-balance-change">
-                              <i className="fas fa-wallet"></i> Total Deposited
+                              <div className="crypto-balance-amount">
+                                {showBalance ? `$${(user.deposit_balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '••••••'}
+                              </div>
+                              <div className="crypto-balance-change">
+                                <i className="fas fa-wallet"></i> Total Deposited
+                              </div>
                             </div>
                           </div>
 
                           <div className="col-12 col-md-6">
                             <div className="crypto-balance-card h-100" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', boxShadow: '0 12px 24px rgba(15, 23, 42, 0.2)', marginBottom: 0 }}>
-                            <div className="position-absolute" style={{ top: '-20px', right: '-20px', opacity: 0.08, zIndex: 0, pointerEvents: 'none' }}>
-                              <i className="fas fa-chart-line text-white" style={{ fontSize: '180px' }}></i>
-                            </div>
-                            <div className="crypto-balance-header">
-                              <div>
-                                <div className="crypto-balance-label">Profit Balance</div>
-                                <div className="crypto-balance-greeting">Trading Returns</div>
+                              <div className="position-absolute" style={{ top: '-20px', right: '-20px', opacity: 0.08, zIndex: 0, pointerEvents: 'none' }}>
+                                <i className="fas fa-chart-line text-white" style={{ fontSize: '180px' }}></i>
                               </div>
-                            </div>
-                            <div className="crypto-balance-amount" style={{ color: '#10b981' }}>
-                              {showBalance ? `$${totalTradingProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '••••••'}
-                            </div>
-                            <div className="crypto-balance-change" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
-                              <i className="fas fa-arrow-up"></i> Generated from trades
+                              <div className="crypto-balance-header">
+                                <div>
+                                  <div className="crypto-balance-label">Profit Balance</div>
+                                  <div className="crypto-balance-greeting">Trading Returns</div>
+                                </div>
+                              </div>
+                              <div className="crypto-balance-amount" style={{ color: '#10b981' }}>
+                                {showBalance ? `$${totalTradingProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '••••••'}
+                              </div>
+                              <div className="crypto-balance-change" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
+                                <i className="fas fa-arrow-up"></i> Generated from trades
+                              </div>
                             </div>
                           </div>
                         </div>
