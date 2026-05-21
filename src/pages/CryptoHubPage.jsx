@@ -285,6 +285,8 @@ const CryptoHubPage = () => {
 
   /* ── Helpers ─────────────────────────────────────────────────── */
   const cryptoBalances = user?.crypto_balances || { BTC: 0, ETH: 0, USDT: 0 };
+  const openTradesProfit = (userTrades?.open_trades || []).reduce((sum, t) => sum + (parseFloat(t.profit_override) || 0), 0);
+  const totalTradingProfit = (user?.trading_balance_profit || 0) + openTradesProfit;
   const totalCryptoValue = Object.entries(cryptoBalances).reduce(
     (sum, [key, amt]) => sum + amt * (marketData[key]?.usd || INITIAL_MARKET_DATA[key].usd), 0
   ) + (user?.trading_balance_total || 0);
@@ -322,15 +324,28 @@ const CryptoHubPage = () => {
       return;
     }
     const amount = parseFloat(modalAmount);
-    if (!amount || amount <= 0 || amount > totalCryptoValue) return;
+    
+    const currentAvailableUSD = selectedAsset === 'Trading Returns' 
+      ? totalTradingProfit 
+      : (cryptoBalances[selectedAsset] || 0) * (marketData[selectedAsset]?.usd || INITIAL_MARKET_DATA[selectedAsset]?.usd || 1);
+
+    if (!amount || amount <= 0 || amount > currentAvailableUSD) return;
     setModalProcessing(true);
     setTimeout(async () => {
       const freshUser = await SynoxDB.getUserById(user.id);
-      const freshCryptoBalances = freshUser.crypto_balances || { BTC: 0, ETH: 0, USDT: 0 };
-      const cryptoAmount = amount / (marketData[selectedAsset]?.usd || INITIAL_MARKET_DATA[selectedAsset].usd);
-      const newBalances = { ...freshCryptoBalances, [selectedAsset]: Math.max(0, (freshCryptoBalances[selectedAsset] || 0) - cryptoAmount) };
-      // Only update crypto_balances here; addTransaction will handle the bank balance credit
-      await SynoxDB.updateUser(user.id, { crypto_balances: newBalances, balance: freshUser.balance + amount });
+      let updates = { balance: freshUser.balance + amount };
+
+      if (selectedAsset === 'Trading Returns') {
+        updates.trading_balance_profit = Math.max(0, (freshUser.trading_balance_profit || 0) - amount);
+        updates.trading_balance_total = Math.max(0, (freshUser.trading_balance_total || 0) - amount);
+      } else {
+        const freshCryptoBalances = freshUser.crypto_balances || { BTC: 0, ETH: 0, USDT: 0 };
+        const cryptoAmount = amount / (marketData[selectedAsset]?.usd || INITIAL_MARKET_DATA[selectedAsset].usd);
+        const newBalances = { ...freshCryptoBalances, [selectedAsset]: Math.max(0, (freshCryptoBalances[selectedAsset] || 0) - cryptoAmount) };
+        updates.crypto_balances = newBalances;
+      }
+
+      await SynoxDB.updateUser(user.id, updates);
       await SynoxDB.addNotification(user.id, 'Crypto to Bank Transfer', `Successfully transferred $${amount.toLocaleString()} worth of ${selectedAsset} to your bank account.`, 'bank');
       await SynoxDB.addNotification(user.id, 'Crypto Withdrawal to Bank', `Withdrawn $${amount.toLocaleString()} worth of ${selectedAsset} to bank account.`, 'crypto');
       setModalProcessing(false);
@@ -597,12 +612,11 @@ const CryptoHubPage = () => {
               {activeTab === 'portfolio' && (
                 <>
                   {(() => {
-                    const openTradesProfit = (userTrades?.open_trades || []).reduce((sum, t) => sum + (parseFloat(t.profit_override) || 0), 0);
-                    const totalTradingProfit = (user.trading_balance_profit || 0) + openTradesProfit;
                     return (
                       <>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-                          <div className="crypto-balance-card" style={{ marginBottom: 0 }}>
+                        <div className="row g-3 mb-4">
+                          <div className="col-12 col-md-6">
+                            <div className="crypto-balance-card h-100" style={{ marginBottom: 0 }}>
                             <div className="position-absolute" style={{ top: '-20px', right: '-20px', opacity: 0.08, zIndex: 0, pointerEvents: 'none' }}>
                               <i className="fab fa-bitcoin text-white" style={{ fontSize: '180px' }}></i>
                             </div>
@@ -623,7 +637,8 @@ const CryptoHubPage = () => {
                             </div>
                           </div>
 
-                          <div className="crypto-balance-card" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', boxShadow: '0 12px 24px rgba(15, 23, 42, 0.2)', marginBottom: 0 }}>
+                          <div className="col-12 col-md-6">
+                            <div className="crypto-balance-card h-100" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', boxShadow: '0 12px 24px rgba(15, 23, 42, 0.2)', marginBottom: 0 }}>
                             <div className="position-absolute" style={{ top: '-20px', right: '-20px', opacity: 0.08, zIndex: 0, pointerEvents: 'none' }}>
                               <i className="fas fa-chart-line text-white" style={{ fontSize: '180px' }}></i>
                             </div>
@@ -977,47 +992,65 @@ const CryptoHubPage = () => {
                           {asset}
                         </button>
                       ))}
+                      {totalTradingProfit > 0 && (
+                        <button
+                          className={`btn btn-sm px-3 py-2 fw-bold rounded-pill ${selectedAsset === 'Trading Returns' ? 'btn-primary' : 'btn-outline-secondary'}`}
+                          style={selectedAsset === 'Trading Returns' ? { background: '#002d72', border: 'none' } : {}}
+                          onClick={() => setSelectedAsset('Trading Returns')}
+                        >
+                          Trading Returns
+                        </button>
+                      )}
                     </div>
                   </div>
 
-                  <div className="mb-3">
-                    <label className="form-label fw-bold small text-muted text-uppercase">Amount (USD)</label>
-                    <div className="bg-light rounded-3 p-1">
-                      <div className="input-group">
-                        <span className="input-group-text bg-transparent border-0 fw-bold text-muted">$</span>
-                        <input
-                          type="number"
-                          className="form-control bg-transparent border-0 py-3 fs-4 fw-bold"
-                          placeholder="0.00"
-                          value={modalAmount}
-                          onChange={(e) => setModalAmount(e.target.value)}
-                          style={{ color: '#002d72' }}
-                        />
-                      </div>
-                    </div>
-                    <div className="d-flex justify-content-between mt-2">
-                      <span className="text-muted" style={{ fontSize: '0.75rem' }}>Available: ${totalCryptoValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                      <button className="btn btn-link btn-sm p-0 text-decoration-none fw-bold" style={{ color: '#002d72', fontSize: '0.75rem' }} onClick={() => setModalAmount(String(totalCryptoValue.toFixed(2)))}>Max</button>
-                    </div>
-                    {modalAmount && parseFloat(modalAmount) > totalCryptoValue && (
-                      <div className="text-danger small mt-1 fw-bold">
-                        <i className="fas fa-exclamation-circle me-1"></i> Exceeds available balance
-                      </div>
-                    )}
-                  </div>
+                  {(() => {
+                    const currentAvailableUSD = selectedAsset === 'Trading Returns' 
+                      ? totalTradingProfit 
+                      : (cryptoBalances[selectedAsset] || 0) * (marketData[selectedAsset]?.usd || INITIAL_MARKET_DATA[selectedAsset]?.usd || 1);
+                    return (
+                      <>
+                        <div className="mb-3">
+                          <label className="form-label fw-bold small text-muted text-uppercase">Amount (USD)</label>
+                          <div className="bg-light rounded-3 p-1">
+                            <div className="input-group">
+                              <span className="input-group-text bg-transparent border-0 fw-bold text-muted">$</span>
+                              <input
+                                type="number"
+                                className="form-control bg-transparent border-0 py-3 fs-4 fw-bold"
+                                placeholder="0.00"
+                                value={modalAmount}
+                                onChange={(e) => setModalAmount(e.target.value)}
+                                style={{ color: '#002d72' }}
+                              />
+                            </div>
+                          </div>
+                          <div className="d-flex justify-content-between mt-2">
+                            <span className="text-muted" style={{ fontSize: '0.75rem' }}>Available: ${currentAvailableUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            <button className="btn btn-link btn-sm p-0 text-decoration-none fw-bold" style={{ color: '#002d72', fontSize: '0.75rem' }} onClick={() => setModalAmount(String(currentAvailableUSD.toFixed(2)))}>Max</button>
+                          </div>
+                          {modalAmount && parseFloat(modalAmount) > currentAvailableUSD && (
+                            <div className="text-danger small mt-1 fw-bold">
+                              <i className="fas fa-exclamation-circle me-1"></i> Exceeds available balance
+                            </div>
+                          )}
+                        </div>
 
-                  <div className="d-grid gap-2 mt-4">
-                    <button
-                      className="btn-premium-navy w-100 py-3 d-flex justify-content-center align-items-center"
-                      disabled={!modalAmount || parseFloat(modalAmount) <= 0 || parseFloat(modalAmount) > totalCryptoValue}
-                      onClick={handleTransferToBank}
-                    >
-                      Transfer to Bank <i className="fas fa-arrow-right ms-2"></i>
-                    </button>
-                    <button className="btn btn-link text-muted fw-bold text-decoration-none" onClick={closeAllModals}>
-                      Cancel
-                    </button>
-                  </div>
+                        <div className="d-grid gap-2 mt-4">
+                          <button
+                            className="btn-premium-navy w-100 py-3 d-flex justify-content-center align-items-center"
+                            disabled={!modalAmount || parseFloat(modalAmount) <= 0 || parseFloat(modalAmount) > currentAvailableUSD}
+                            onClick={handleTransferToBank}
+                          >
+                            Transfer to Bank <i className="fas fa-arrow-right ms-2"></i>
+                          </button>
+                          <button className="btn btn-link text-muted fw-bold text-decoration-none" onClick={closeAllModals}>
+                            Cancel
+                          </button>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </>
               )}
             </div>

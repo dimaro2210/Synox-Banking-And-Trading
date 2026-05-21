@@ -76,7 +76,7 @@ const DashboardLayout = ({ children, sidebarOverride, onNotificationClick, custo
       {/* Sidebar */}
       <div id="sidebar-wrapper">
         <div className="sidebar-heading position-relative">
-          <Logo variant="dark" size="small" />
+          <Logo variant="light" size="small" />
           <button className="close-menu-btn" id="close-menu" onClick={toggleSidebar}>
             <i className="fas fa-times"></i>
           </button>
