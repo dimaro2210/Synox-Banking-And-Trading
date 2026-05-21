@@ -727,8 +727,13 @@ const CryptoHubPage = () => {
                               </span>
                             </div>
                             <div className="d-flex align-items-center mb-3">
-                              <div className="rounded-circle bg-light d-flex align-items-center justify-content-center me-3" style={{ width: '40px', height: '40px' }}>
-                                <i className={`fab fa-${trade.asset_pair?.split('/')[0]?.toLowerCase() === 'btc' ? 'bitcoin' : trade.asset_pair?.split('/')[0]?.toLowerCase() === 'eth' ? 'ethereum' : 'ethereum'} fs-5 text-primary`}></i>
+                              <div className="d-flex position-relative me-3" style={{ width: '50px', height: '36px' }}>
+                                <div className="rounded-circle d-flex align-items-center justify-content-center text-white position-absolute shadow-sm" style={{ width: '36px', height: '36px', left: 0, zIndex: 2, fontSize: '0.65rem', fontWeight: 'bold', border: '2px solid #fff', background: '#002D72' }}>
+                                  {trade.asset_pair?.split('/')[0] || 'CRYPTO'}
+                                </div>
+                                <div className="rounded-circle d-flex align-items-center justify-content-center bg-light text-muted position-absolute shadow-sm" style={{ width: '36px', height: '36px', left: '18px', zIndex: 1, fontSize: '0.65rem', fontWeight: 'bold', border: '2px solid #fff' }}>
+                                  {trade.asset_pair?.split('/')[1] || 'USD'}
+                                </div>
                               </div>
                               <div>
                                 <h6 className="fw-bold mb-0 text-dark">{trade.asset_pair}</h6>
@@ -805,8 +810,13 @@ const CryptoHubPage = () => {
                               <tr key={trade.id}>
                                 <td className="py-3 ps-4">
                                   <div className="d-flex align-items-center">
-                                    <div className="rounded-circle bg-light d-flex align-items-center justify-content-center me-3" style={{ width: '36px', height: '36px' }}>
-                                      <i className={`fab fa-${trade.asset_pair?.split('/')[0]?.toLowerCase() === 'btc' ? 'bitcoin' : 'ethereum'} text-dark`}></i>
+                                    <div className="d-flex position-relative me-3" style={{ width: '46px', height: '32px' }}>
+                                      <div className="rounded-circle d-flex align-items-center justify-content-center text-white position-absolute shadow-sm" style={{ width: '32px', height: '32px', left: 0, zIndex: 2, fontSize: '0.6rem', fontWeight: 'bold', border: '2px solid #fff', background: '#002D72' }}>
+                                        {trade.asset_pair?.split('/')[0] || 'CRYPTO'}
+                                      </div>
+                                      <div className="rounded-circle d-flex align-items-center justify-content-center bg-light text-muted position-absolute shadow-sm" style={{ width: '32px', height: '32px', left: '16px', zIndex: 1, fontSize: '0.6rem', fontWeight: 'bold', border: '2px solid #fff' }}>
+                                        {trade.asset_pair?.split('/')[1] || 'USD'}
+                                      </div>
                                     </div>
                                     <div>
                                       <div className="fw-bold text-dark" style={{ fontSize: '0.9rem' }}>{trade.asset_pair}</div>
