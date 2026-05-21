@@ -46,9 +46,6 @@ const TransfersPage = () => {
     const loadData = async () => {
       const userData = await SynoxDB.getUserById(userId);
       setUser(userData);
-      if (userData.status === 'Frozen') {
-        setShowFrozenPopup(true);
-      }
     };
     loadData();
 
@@ -76,6 +73,10 @@ const TransfersPage = () => {
 
   const handleContinueToReview = (e) => {
     e.preventDefault();
+    if (user.status === 'Frozen') {
+      setShowFrozenPopup(true);
+      return;
+    }
     if (isFormValid()) {
       setStep(2);
     }

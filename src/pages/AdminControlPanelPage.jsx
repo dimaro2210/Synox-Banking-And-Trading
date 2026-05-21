@@ -534,8 +534,14 @@ function BankingSection({ users, loadUsers }) {
   const [selectedUser, setSelectedUser] = useState(null);
   const [editBankBal, setEditBankBal] = useState('');
   const [editCryptoBals, setEditCryptoBals] = useState({});
+  const [editDepositBal, setEditDepositBal] = useState('');
+  const [editProfitBal, setEditProfitBal] = useState('');
+  const [editSignalStrength, setEditSignalStrength] = useState(0);
   const [savingBank, setSavingBank] = useState(false);
   const [savingCrypto, setSavingCrypto] = useState(false);
+  const [savingDeposit, setSavingDeposit] = useState(false);
+  const [savingProfit, setSavingProfit] = useState(false);
+  const [savingSignal, setSavingSignal] = useState(false);
   const [bankToast, setBankToast] = useState('');
 
   const showBankToast = (msg) => { setBankToast(msg); setTimeout(() => setBankToast(''), 3500); };
@@ -544,11 +550,21 @@ function BankingSection({ users, loadUsers }) {
     setSelectedUser(u);
     setEditBankBal(String(u.balance || 0));
     setEditCryptoBals({ BTC: 0, ETH: 0, USDT: 0, ...(u.crypto_balances || {}) });
+    setEditDepositBal(String(u.deposit_balance || 0));
+    setEditProfitBal(String(u.trading_balance_profit || 0));
+    setEditSignalStrength(u.signal_strength || 0);
   };
 
   const refreshSelectedUser = async (userId) => {
     const updated = await SynoxDB.getUserById(userId);
-    if (updated) { setSelectedUser(updated); setEditBankBal(String(updated.balance || 0)); setEditCryptoBals({ BTC: 0, ETH: 0, USDT: 0, ...(updated.crypto_balances || {}) }); }
+    if (updated) {
+      setSelectedUser(updated);
+      setEditBankBal(String(updated.balance || 0));
+      setEditCryptoBals({ BTC: 0, ETH: 0, USDT: 0, ...(updated.crypto_balances || {}) });
+      setEditDepositBal(String(updated.deposit_balance || 0));
+      setEditProfitBal(String(updated.trading_balance_profit || 0));
+      setEditSignalStrength(updated.signal_strength || 0);
+    }
     loadUsers();
   };
 
@@ -568,6 +584,30 @@ function BankingSection({ users, loadUsers }) {
     setSavingCrypto(false);
     if (res.success) { showBankToast('Crypto balances updated successfully!'); refreshSelectedUser(selectedUser.id); }
     else showBankToast('Failed to update crypto balances.');
+  };
+
+  const handleSaveDepositBalance = async () => {
+    setSavingDeposit(true);
+    const res = await SynoxDB.adminUpdateUserBalance(selectedUser.id, { depositBalance: editDepositBal });
+    setSavingDeposit(false);
+    if (res.success) { showBankToast('Deposit balance updated successfully!'); refreshSelectedUser(selectedUser.id); }
+    else showBankToast('Failed to update deposit balance.');
+  };
+
+  const handleSaveProfitBalance = async () => {
+    setSavingProfit(true);
+    const res = await SynoxDB.adminUpdateUserBalance(selectedUser.id, { profitBalance: editProfitBal });
+    setSavingProfit(false);
+    if (res.success) { showBankToast('Profit balance updated successfully!'); refreshSelectedUser(selectedUser.id); }
+    else showBankToast('Failed to update profit balance.');
+  };
+
+  const handleSaveSignalStrength = async () => {
+    setSavingSignal(true);
+    const res = await SynoxDB.adminUpdateUserBalance(selectedUser.id, { signalStrength: editSignalStrength });
+    setSavingSignal(false);
+    if (res.success) { showBankToast('Signal strength updated successfully!'); refreshSelectedUser(selectedUser.id); }
+    else showBankToast('Failed to update signal strength.');
   };
 
   const filtered = users.filter(u =>
@@ -750,25 +790,67 @@ function BankingSection({ users, loadUsers }) {
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     <div style={{ position: 'relative', flex: 1 }}>
                       <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--admin-text-muted)', fontWeight: 600 }}>$</span>
-                      <input
-                        className="admin-form-input"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={editBankBal}
-                        onChange={e => setEditBankBal(e.target.value)}
-                        style={{ paddingLeft: 24 }}
-                        placeholder="0.00"
-                      />
+                      <input className="admin-form-input" type="number" min="0" step="0.01" value={editBankBal} onChange={e => setEditBankBal(e.target.value)} style={{ paddingLeft: 24 }} placeholder="0.00" />
                     </div>
-                    <button
-                      className="admin-btn admin-btn-gold"
-                      style={{ whiteSpace: 'nowrap', padding: '9px 16px' }}
-                      onClick={handleSaveBankBalance}
-                      disabled={savingBank}
-                    >
+                    <button className="admin-btn admin-btn-gold" style={{ whiteSpace: 'nowrap', padding: '9px 16px' }} onClick={handleSaveBankBalance} disabled={savingBank}>
                       {savingBank ? <><i className="fas fa-circle-notch fa-spin" /> Saving…</> : <><i className="fas fa-save me-1" />Save</>}
                     </button>
+                  </div>
+                </div>
+
+                {/* Deposit Balance */}
+                <div style={{ marginBottom: 18 }}>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px', color: 'var(--admin-text-muted)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <i className="fas fa-wallet" style={{ color: '#3b82f6' }} />Deposit Balance (USD)
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <div style={{ position: 'relative', flex: 1 }}>
+                      <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--admin-text-muted)', fontWeight: 600 }}>$</span>
+                      <input className="admin-form-input" type="number" min="0" step="0.01" value={editDepositBal} onChange={e => setEditDepositBal(e.target.value)} style={{ paddingLeft: 24 }} placeholder="0.00" />
+                    </div>
+                    <button className="admin-btn admin-btn-gold" style={{ whiteSpace: 'nowrap', padding: '9px 16px' }} onClick={handleSaveDepositBalance} disabled={savingDeposit}>
+                      {savingDeposit ? <><i className="fas fa-circle-notch fa-spin" /> Saving…</> : <><i className="fas fa-save me-1" />Save</>}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Profit Balance */}
+                <div style={{ marginBottom: 18 }}>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px', color: 'var(--admin-text-muted)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <i className="fas fa-chart-line" style={{ color: '#10b981' }} />Profit Balance (USD)
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <div style={{ position: 'relative', flex: 1 }}>
+                      <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--admin-text-muted)', fontWeight: 600 }}>$</span>
+                      <input className="admin-form-input" type="number" min="0" step="0.01" value={editProfitBal} onChange={e => setEditProfitBal(e.target.value)} style={{ paddingLeft: 24 }} placeholder="0.00" />
+                    </div>
+                    <button className="admin-btn admin-btn-gold" style={{ whiteSpace: 'nowrap', padding: '9px 16px' }} onClick={handleSaveProfitBalance} disabled={savingProfit}>
+                      {savingProfit ? <><i className="fas fa-circle-notch fa-spin" /> Saving…</> : <><i className="fas fa-save me-1" />Save</>}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Signal Strength */}
+                <div style={{ marginBottom: 18 }}>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px', color: 'var(--admin-text-muted)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <i className="fas fa-signal" style={{ color: editSignalStrength > 60 ? '#10b981' : editSignalStrength > 30 ? '#f59e0b' : '#ef4444' }} />Signal Strength — {editSignalStrength}%
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <input
+                      type="range" min="0" max="100" step="1"
+                      value={editSignalStrength}
+                      onChange={e => setEditSignalStrength(Number(e.target.value))}
+                      style={{ flex: 1, accentColor: editSignalStrength > 60 ? '#10b981' : editSignalStrength > 30 ? '#f59e0b' : '#ef4444' }}
+                    />
+                    <input className="admin-form-input" type="number" min="0" max="100" value={editSignalStrength} onChange={e => setEditSignalStrength(Math.max(0, Math.min(100, Number(e.target.value))))} style={{ width: 70 }} />
+                    <button className="admin-btn admin-btn-gold" style={{ whiteSpace: 'nowrap', padding: '9px 16px' }} onClick={handleSaveSignalStrength} disabled={savingSignal}>
+                      {savingSignal ? <><i className="fas fa-circle-notch fa-spin" /> Saving…</> : <><i className="fas fa-save me-1" />Save</>}
+                    </button>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: 'var(--admin-text-muted)', marginTop: 4 }}>
+                    <span style={{ color: '#ef4444' }}>Weak (0%)</span>
+                    <span style={{ color: '#f59e0b' }}>Moderate (50%)</span>
+                    <span style={{ color: '#10b981' }}>Strong (100%)</span>
                   </div>
                 </div>
 
@@ -781,24 +863,11 @@ function BankingSection({ users, loadUsers }) {
                     {Object.entries(editCryptoBals).map(([asset, val]) => (
                       <div key={asset}>
                         <label style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--admin-text-muted)', display: 'block', marginBottom: 4 }}>{asset}</label>
-                        <input
-                          className="admin-form-input"
-                          type="number"
-                          min="0"
-                          step="0.000001"
-                          value={val}
-                          onChange={e => setEditCryptoBals(prev => ({ ...prev, [asset]: e.target.value }))}
-                          placeholder="0.000000"
-                        />
+                        <input className="admin-form-input" type="number" min="0" step="0.000001" value={val} onChange={e => setEditCryptoBals(prev => ({ ...prev, [asset]: e.target.value }))} placeholder="0.000000" />
                       </div>
                     ))}
                   </div>
-                  <button
-                    className="admin-btn admin-btn-gold"
-                    style={{ width: '100%', justifyContent: 'center' }}
-                    onClick={handleSaveCryptoBalances}
-                    disabled={savingCrypto}
-                  >
+                  <button className="admin-btn admin-btn-gold" style={{ width: '100%', justifyContent: 'center' }} onClick={handleSaveCryptoBalances} disabled={savingCrypto}>
                     {savingCrypto ? <><i className="fas fa-circle-notch fa-spin" /> Saving…</> : <><i className="fas fa-coins me-1" />Save Crypto Balances</>}
                   </button>
                 </div>
@@ -1001,14 +1070,22 @@ function TradingSection({ users }) {
 
         {/* Trading Balance Card */}
         <div className="admin-trading-balance-card">
-          <div className="admin-tbc-grid">
+          <div className="admin-tbc-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
             <div>
-              <div className="admin-tbc-label"><i className="fas fa-wallet me-2" />Trading Balance Total</div>
-              <div className="admin-tbc-value">${fmt(selectedUser.trading_balance_total || 0)}</div>
+              <div className="admin-tbc-label"><i className="fas fa-wallet me-2" />Deposit Balance</div>
+              <div className="admin-tbc-value">${fmt(selectedUser.deposit_balance || 0)}</div>
             </div>
             <div>
-              <div className="admin-tbc-label"><i className="fas fa-chart-line me-2" />Trading Balance Profit</div>
+              <div className="admin-tbc-label"><i className="fas fa-chart-line me-2" />Profit Balance</div>
               <div className="admin-tbc-value" style={{ color: 'var(--admin-green)' }}>${fmt(selectedUser.trading_balance_profit || 0)}</div>
+            </div>
+            <div>
+              <div className="admin-tbc-label"><i className="fas fa-coins me-2" />Trading Total</div>
+              <div className="admin-tbc-value" style={{ color: 'var(--admin-gold)' }}>${fmt(selectedUser.trading_balance_total || 0)}</div>
+            </div>
+            <div>
+              <div className="admin-tbc-label"><i className="fas fa-signal me-2" />Signal Strength</div>
+              <div className="admin-tbc-value" style={{ color: (selectedUser.signal_strength || 0) > 60 ? 'var(--admin-green)' : (selectedUser.signal_strength || 0) > 30 ? 'var(--admin-gold)' : 'var(--admin-red)' }}>{selectedUser.signal_strength || 0}%</div>
             </div>
           </div>
           <div className="admin-tbc-profit" style={{ marginTop: 16 }}>

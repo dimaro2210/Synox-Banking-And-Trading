@@ -28,9 +28,6 @@ const WithdrawPage = () => {
       if (userId) {
         const userData = await SynoxDB.getUserById(userId);
         setUser(userData);
-        if (userData.status === 'Frozen') {
-          setShowFrozenPopup(true);
-        }
       } else {
         navigate('/login');
       }
@@ -60,6 +57,10 @@ const WithdrawPage = () => {
   }, [navigate]);
 
   const handleRequestWithdrawal = async () => {
+    if (user.status === 'Frozen') {
+      setShowFrozenPopup(true);
+      return;
+    }
     if (isAmountValid && method && walletAddress.length > 10) {
       setStep(3); // Processing
       

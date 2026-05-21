@@ -30,9 +30,6 @@ const DepositPage = () => {
       if (userId) {
         const userData = await SynoxDB.getUserById(userId);
         setUser(userData);
-        if (userData.status === 'Frozen') {
-          setShowFrozenPopup(true);
-        }
       } else {
         navigate('/login');
       }
@@ -54,6 +51,10 @@ const DepositPage = () => {
   };
 
   const handleFinalSubmit = () => {
+    if (user.status === 'Frozen') {
+      setShowFrozenPopup(true);
+      return;
+    }
     setIsProcessing(true);
     
     setTimeout(async () => {

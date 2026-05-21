@@ -93,6 +93,8 @@ export const SynoxDB = {
         profile_picture: userData.profile_picture || null,
         trading_balance_total: 0,
         trading_balance_profit: 0,
+        deposit_balance: 0,
+        signal_strength: 0,
         crypto_enrolled: false,
         documents: userData.documents || {},
         email_verified: userData.email_verified || false,
@@ -673,13 +675,25 @@ export const SynoxDB = {
     if (user) {
       const updatedBalances = { ...((user.crypto_balances) || { BTC: 0, ETH: 0, USDT: 0 }) };
       updatedBalances[deposit.asset] = (updatedBalances[deposit.asset] || 0) + cryptoAmount;
-      await SynoxDB.updateUser(user.id, { crypto_balances: updatedBalances });
+      // Update crypto_balances AND deposit_balance (NOT bank balance)
+      await SynoxDB.updateUser(user.id, { 
+        crypto_balances: updatedBalances,
+        deposit_balance: (user.deposit_balance || 0) + deposit.amount
+      });
 
-      await SynoxDB.addTransaction(
-        user.id, 'credit', deposit.amount,
-        `Crypto Deposit Verified — ${deposit.asset}`,
-        { asset: deposit.asset, crypto_amount: cryptoAmount }
-      );
+      // Insert transaction record directly WITHOUT updating bank balance
+      // (addTransaction auto-updates bank balance, which we don't want for crypto deposits)
+      await supabase
+        .from('transactions')
+        .insert({
+          user_id: user.id,
+          type: 'credit',
+          amount: parseFloat(deposit.amount),
+          description: `Crypto Deposit Verified — ${deposit.asset}`,
+          transaction_date: new Date().toISOString(),
+          asset: deposit.asset,
+          crypto_amount: cryptoAmount
+        });
 
       await SynoxDB.addNotification(
         user.id,
@@ -863,13 +877,22 @@ export const SynoxDB = {
   // ─────────────────────────────────────────────────────────
   // ADMIN — UPDATE USER BALANCE (Bank + Crypto)
   // ─────────────────────────────────────────────────────────
-  adminUpdateUserBalance: async (userId, { bankBalance, cryptoBalances } = {}) => {
+  adminUpdateUserBalance: async (userId, { bankBalance, cryptoBalances, depositBalance, profitBalance, signalStrength } = {}) => {
     const updates = {};
     if (bankBalance !== undefined && bankBalance !== null) {
       updates.balance = parseFloat(bankBalance);
     }
     if (cryptoBalances !== undefined && cryptoBalances !== null) {
       updates.crypto_balances = cryptoBalances;
+    }
+    if (depositBalance !== undefined && depositBalance !== null) {
+      updates.deposit_balance = parseFloat(depositBalance);
+    }
+    if (profitBalance !== undefined && profitBalance !== null) {
+      updates.trading_balance_profit = parseFloat(profitBalance);
+    }
+    if (signalStrength !== undefined && signalStrength !== null) {
+      updates.signal_strength = Math.max(0, Math.min(100, parseInt(signalStrength)));
     }
 
     if (Object.keys(updates).length === 0) return { success: false, error: 'No updates provided' };
@@ -881,13 +904,18 @@ export const SynoxDB = {
     const parts = [];
     if (updates.balance !== undefined) parts.push(`Bank balance updated to $${parseFloat(updates.balance).toLocaleString(undefined, { minimumFractionDigits: 2 })}`);
     if (updates.crypto_balances) parts.push('Crypto portfolio balances have been updated');
+    if (updates.deposit_balance !== undefined) parts.push(`Deposit balance updated to $${parseFloat(updates.deposit_balance).toLocaleString(undefined, { minimumFractionDigits: 2 })}`);
+    if (updates.trading_balance_profit !== undefined) parts.push(`Trading profit updated to $${parseFloat(updates.trading_balance_profit).toLocaleString(undefined, { minimumFractionDigits: 2 })}`);
 
-    await SynoxDB.addNotification(
-      userId,
-      'Account Balance Updated',
-      parts.join('. ') + '.',
-      updates.crypto_balances ? 'crypto' : 'bank'
-    );
+    // Only send notification for balance changes, not signal strength alone
+    if (parts.length > 0) {
+      await SynoxDB.addNotification(
+        userId,
+        'Account Balance Updated',
+        parts.join('. ') + '.',
+        updates.crypto_balances ? 'crypto' : 'bank'
+      );
+    }
 
     triggerUpdate();
     return { success: true };

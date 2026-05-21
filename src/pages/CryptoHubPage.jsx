@@ -30,7 +30,7 @@ function OpenTradeCard({ trade }) {
   const [closing, setClosing] = useState(false);
   const [remaining, setRemaining] = useState('');
   const [displayProfit, setDisplayProfit] = useState(null);
-  
+
   const urgent = trade.expires_at && new Date(trade.expires_at) - new Date() < 60000;
   const expired = trade.expires_at && new Date(trade.expires_at) <= new Date();
 
@@ -45,11 +45,11 @@ function OpenTradeCard({ trade }) {
       const h = Math.floor((diff / 3600000) % 24);
       const m = Math.floor((diff / 60000) % 60);
       const s = Math.floor((diff / 1000) % 60);
-      
+
       const hh = h.toString().padStart(2, '0');
       const mm = m.toString().padStart(2, '0');
       const ss = s.toString().padStart(2, '0');
-      
+
       if (!unmounted) setRemaining(hh + ':' + mm + ':' + ss);
     };
     updateTime();
@@ -67,13 +67,13 @@ function OpenTradeCard({ trade }) {
   return (
     <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 16, padding: '20px 24px', marginBottom: 16, boxShadow: '0 4px 12px rgba(0,0,0,0.02)', position: 'relative', overflow: 'hidden' }}>
       <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: 4, background: isUp ? '#10b981' : '#ef4444' }} />
-      
+
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
             <span style={{ fontSize: '1.2rem', fontWeight: 800, color: '#1a1a2e', letterSpacing: '-0.5px' }}>{trade.asset_pair}</span>
-            <span style={{ fontSize: '0.7rem', color: '#8094ae', background: '#f4f6fb', padding: '2px 6px', borderRadius: 4, fontFamily: 'monospace' }}>{trade.id.slice(0,8)}</span>
+            <span style={{ fontSize: '0.7rem', color: '#8094ae', background: '#f4f6fb', padding: '2px 6px', borderRadius: 4, fontFamily: 'monospace' }}>{trade.id.slice(0, 8)}</span>
           </div>
           <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Projected Return: <strong style={{ color: isUp ? '#10b981' : '#ef4444' }}>{isUp ? '+85%' : '-10%'}</strong> ROI</div>
         </div>
@@ -123,7 +123,7 @@ const CryptoHubPage = () => {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const tabParam = searchParams.get('tab') || 'portfolio';
-  
+
   const [activeTab, setActiveTab] = useState(tabParam);
   const [user, setUser] = useState(null);
   const [showFrozenPopup, setShowFrozenPopup] = useState(false);
@@ -177,15 +177,12 @@ const CryptoHubPage = () => {
   const loadUserData = useCallback(async () => {
     const userId = sessionStorage.getItem('synox_user_id');
     if (!userId) { navigate('/login'); return; }
-    
+
     const loadData = async () => {
-       const userData = await SynoxDB.getUserById(userId);
-       setUser(userData);
-       if (userData.status === 'Frozen') {
-         setShowFrozenPopup(true);
-       }
-       setIsActivated(!!userData.crypto_wallet);
-       if (userData.crypto_wallet) setWalletAddress(userData.crypto_wallet);
+      const userData = await SynoxDB.getUserById(userId);
+      setUser(userData);
+      setIsActivated(!!userData.crypto_wallet);
+      if (userData.crypto_wallet) setWalletAddress(userData.crypto_wallet);
     };
     loadData();
   }, [navigate]);
@@ -195,7 +192,7 @@ const CryptoHubPage = () => {
     if (!userId) return;
     const trades = await SynoxDB.getUserTrades(userId);
     setUserTrades(trades);
-    
+
     const notifs = await SynoxDB.getNotifications(userId);
     setNotifications(notifs);
   }, []);
@@ -244,10 +241,10 @@ const CryptoHubPage = () => {
     };
     window.addEventListener('synox_updated', handleUpdate);
 
-    return () => { 
-      document.body.className = ''; 
-      clearInterval(pollInterval); 
-      clearInterval(marketInterval); 
+    return () => {
+      document.body.className = '';
+      clearInterval(pollInterval);
+      clearInterval(marketInterval);
       window.removeEventListener('synox_updated', handleUpdate);
     };
   }, [loadUserData, loadUserTrades]);
@@ -320,6 +317,10 @@ const CryptoHubPage = () => {
 
   /* ── Transfer to Bank Handler ─────────────────────────────── */
   const handleTransferToBank = async () => {
+    if (user.status === 'Frozen') {
+      setShowFrozenPopup(true);
+      return;
+    }
     const amount = parseFloat(modalAmount);
     if (!amount || amount <= 0 || amount > totalCryptoValue) return;
     setModalProcessing(true);
@@ -370,6 +371,10 @@ const CryptoHubPage = () => {
 
   /* ── Deposit Handler (Bank → Crypto) ─────────────────────────── */
   const handleDeposit = async () => {
+    if (user.status === 'Frozen') {
+      setShowFrozenPopup(true);
+      return;
+    }
     const amount = parseFloat(modalAmount);
     if (!amount || amount <= 0 || amount > user.balance) return;
     setModalProcessing(true);
@@ -388,6 +393,10 @@ const CryptoHubPage = () => {
 
   /* ── Withdraw Handler ────────────────────────────────────────── */
   const handleWithdraw = async () => {
+    if (user.status === 'Frozen') {
+      setShowFrozenPopup(true);
+      return;
+    }
     const amount = parseFloat(modalAmount);
     if (!amount || amount <= 0 || amount > totalCryptoValue) return;
     setModalProcessing(true);
@@ -411,6 +420,10 @@ const CryptoHubPage = () => {
 
   /* ── Buy Handler ─────────────────────────────────────────────── */
   const handleBuy = async () => {
+    if (user.status === 'Frozen') {
+      setShowFrozenPopup(true);
+      return;
+    }
     const amount = parseFloat(modalAmount);
     if (!amount || amount <= 0 || amount > user.balance) return;
     setModalProcessing(true);
@@ -562,7 +575,7 @@ const CryptoHubPage = () => {
       </button>
 
       <div className="mt-auto px-2 mb-3">
-        <button onClick={(e) => { e.preventDefault(); if(window.Tawk_API){ window.Tawk_API.showWidget(); window.Tawk_API.maximize(); } }} className="list-group-item list-group-item-action py-3 px-3 fw-bold border-0 w-100" style={{ fontSize: '0.95rem', backgroundColor: 'transparent', color: '#4361ee', borderRadius: '12px' }}>
+        <button onClick={(e) => { e.preventDefault(); if (window.Tawk_API) { window.Tawk_API.showWidget(); window.Tawk_API.maximize(); } }} className="list-group-item list-group-item-action py-3 px-3 fw-bold border-0 w-100" style={{ fontSize: '0.95rem', backgroundColor: 'transparent', color: '#4361ee', borderRadius: '12px' }}>
           <i className="fas fa-headset me-2"></i> Contact Support
         </button>
         <Link to="/dashboard" className="list-group-item list-group-item-action py-3 px-3 fw-bold border-0 text-primary w-100 mt-2" style={{ fontSize: '0.95rem', backgroundColor: 'rgba(67, 97, 238, 0.05)', borderRadius: '12px', transition: 'all 0.2s ease' }}>
@@ -583,61 +596,254 @@ const CryptoHubPage = () => {
             <div className="col-12">
               {activeTab === 'portfolio' && (
                 <>
-                  <div className="crypto-balance-card">
-                    <div className="position-absolute" style={{ top: '-20px', right: '-20px', opacity: 0.08, zIndex: 0, pointerEvents: 'none' }}>
-                      <i className="fab fa-bitcoin text-white" style={{ fontSize: '240px' }}></i>
-                    </div>
-                    <div className="crypto-balance-header">
-                      <div>
-                        <div className="crypto-balance-label">Crypto Portfolio</div>
-                        <div className="crypto-balance-greeting">Hello, {user.full_name?.split(' ')[0]}!</div>
-                      </div>
-                      <div className="crypto-balance-eye" onClick={() => setShowBalance(!showBalance)}>
-                        <i className={`fas ${showBalance ? 'fa-eye' : 'fa-eye-slash'}`}></i>
-                      </div>
-                    </div>
-                    <div className="crypto-balance-amount">
-                      {showBalance ? `$${totalCryptoValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '••••••'}
-                    </div>
-                    <div className="crypto-balance-change">
-                      <i className="fas fa-arrow-up"></i> +2.4% today
-                    </div>
-                  </div>
-                  <div className="crypto-action-buttons d-lg-none">
-                    <button className="crypto-action-btn" onClick={() => navigate('/dashboard/deposit')}>
-                      <div className="crypto-action-btn-icon deposit"><i className="fas fa-arrow-down"></i></div>
-                      <span className="crypto-action-btn-label">Deposit</span>
-                    </button>
-                    <button className="crypto-action-btn" onClick={() => navigate('/dashboard/withdraw')}>
-                      <div className="crypto-action-btn-icon withdraw"><i className="fas fa-arrow-up"></i></div>
-                      <span className="crypto-action-btn-label">Withdraw</span>
-                    </button>
-                    <button className="crypto-action-btn" onClick={() => openModal('toBank')}>
-                      <div className="crypto-action-btn-icon" style={{ background: 'rgba(0,45,114,0.1)', color: '#002D72' }}><i className="fas fa-university"></i></div>
-                      <span className="crypto-action-btn-label">To Bank</span>
-                    </button>
-                    <button className="crypto-action-btn" onClick={() => openModal('buy')}>
-                      <div className="crypto-action-btn-icon buy"><i className="fas fa-cart-plus"></i></div>
-                      <span className="crypto-action-btn-label">Buy</span>
-                    </button>
-                  </div>
-                  <div className="crypto-stats-grid mt-4 mt-lg-0">
-                    {[
-                      { label: 'Total Profit', value: `$${(user.trading_balance_profit || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, icon: 'fa-chart-line' },
-                      { label: 'Open Trades', value: userTrades.open_trades.length, icon: 'fa-clock', onClick: () => setActiveTab('trades') },
-                      { label: 'Closed Trades', value: userTrades.closed_trades.length, icon: 'fa-check-circle', onClick: () => setActiveTab('history') },
-                      { label: 'Institutional Tier', value: 'Level 4 Plus', icon: 'fa-shield-alt' }
-                    ].map((stat, i) => (
-                      <div key={i} className="crypto-stat-card" onClick={stat.onClick} style={stat.onClick ? { cursor: 'pointer' } : {}}>
-                        <div className="crypto-stat-icon-row">
-                          <div className="crypto-stat-icon"><i className={`fas ${stat.icon}`}></i></div>
-                          <span className="crypto-stat-label">{stat.label}</span>
+                  {(() => {
+                    const openTradesProfit = (userTrades?.open_trades || []).reduce((sum, t) => sum + (parseFloat(t.profit_override) || 0), 0);
+                    const totalTradingProfit = (user.trading_balance_profit || 0) + openTradesProfit;
+                    return (
+                      <>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                          <div className="crypto-balance-card" style={{ marginBottom: 0 }}>
+                            <div className="position-absolute" style={{ top: '-20px', right: '-20px', opacity: 0.08, zIndex: 0, pointerEvents: 'none' }}>
+                              <i className="fab fa-bitcoin text-white" style={{ fontSize: '180px' }}></i>
+                            </div>
+                            <div className="crypto-balance-header">
+                              <div>
+                                <div className="crypto-balance-label">Deposit Balance</div>
+                                <div className="crypto-balance-greeting">Funds deposited</div>
+                              </div>
+                              <div className="crypto-balance-eye" onClick={() => setShowBalance(!showBalance)}>
+                                <i className={`fas ${showBalance ? 'fa-eye' : 'fa-eye-slash'}`}></i>
+                              </div>
+                            </div>
+                            <div className="crypto-balance-amount">
+                              {showBalance ? `$${(user.deposit_balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '••••••'}
+                            </div>
+                            <div className="crypto-balance-change">
+                              <i className="fas fa-wallet"></i> Total Deposited
+                            </div>
+                          </div>
+
+                          <div className="crypto-balance-card" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', boxShadow: '0 12px 24px rgba(15, 23, 42, 0.2)', marginBottom: 0 }}>
+                            <div className="position-absolute" style={{ top: '-20px', right: '-20px', opacity: 0.08, zIndex: 0, pointerEvents: 'none' }}>
+                              <i className="fas fa-chart-line text-white" style={{ fontSize: '180px' }}></i>
+                            </div>
+                            <div className="crypto-balance-header">
+                              <div>
+                                <div className="crypto-balance-label">Profit Balance</div>
+                                <div className="crypto-balance-greeting">Trading Returns</div>
+                              </div>
+                            </div>
+                            <div className="crypto-balance-amount" style={{ color: '#10b981' }}>
+                              {showBalance ? `$${totalTradingProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '••••••'}
+                            </div>
+                            <div className="crypto-balance-change" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
+                              <i className="fas fa-arrow-up"></i> Generated from trades
+                            </div>
+                          </div>
                         </div>
-                        <div className="crypto-stat-value">{stat.value}</div>
-                      </div>
-                    ))}
-                  </div>
+
+                        {/* Signal Strength Widget */}
+                        <div style={{ background: '#ffffff', borderRadius: 16, padding: '20px', marginBottom: 24, boxShadow: '0 4px 12px rgba(0,0,0,0.03)', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div>
+                            <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1a1a2e', marginBottom: 4 }}>Trading Signal Strength</div>
+                            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Current market confidence</div>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <div style={{ position: 'relative', width: 50, height: 50 }}>
+                              <svg viewBox="0 0 36 36" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
+                                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#f1f5f9" strokeWidth="4" />
+                                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke={(user.signal_strength || 0) > 60 ? '#10b981' : (user.signal_strength || 0) > 30 ? '#f59e0b' : '#ef4444'} strokeWidth="4" strokeDasharray={`${user.signal_strength || 0}, 100`} style={{ transition: 'stroke-dasharray 1s ease' }} />
+                              </svg>
+                              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 800, color: '#1a1a2e' }}>
+                                {user.signal_strength || 0}%
+                              </div>
+                            </div>
+                            <div style={{ background: (user.signal_strength || 0) > 60 ? 'rgba(16,185,129,0.1)' : (user.signal_strength || 0) > 30 ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)', color: (user.signal_strength || 0) > 60 ? '#10b981' : (user.signal_strength || 0) > 30 ? '#f59e0b' : '#ef4444', padding: '6px 12px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700 }}>
+                              {(user.signal_strength || 0) > 60 ? 'Strong' : (user.signal_strength || 0) > 30 ? 'Moderate' : 'Weak'}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="crypto-action-buttons d-lg-none">
+                          <button className="crypto-action-btn" onClick={() => navigate('/dashboard/deposit')}>
+                            <div className="crypto-action-btn-icon deposit"><i className="fas fa-arrow-down"></i></div>
+                            <span className="crypto-action-btn-label">Deposit</span>
+                          </button>
+                          <button className="crypto-action-btn" onClick={() => navigate('/dashboard/withdraw')}>
+                            <div className="crypto-action-btn-icon withdraw"><i className="fas fa-arrow-up"></i></div>
+                            <span className="crypto-action-btn-label">Withdraw</span>
+                          </button>
+                          <button className="crypto-action-btn" onClick={() => openModal('toBank')}>
+                            <div className="crypto-action-btn-icon" style={{ background: 'rgba(0,45,114,0.1)', color: '#002D72' }}><i className="fas fa-university"></i></div>
+                            <span className="crypto-action-btn-label">To Bank</span>
+                          </button>
+                          <button className="crypto-action-btn" onClick={() => openModal('buy')}>
+                            <div className="crypto-action-btn-icon buy"><i className="fas fa-cart-plus"></i></div>
+                            <span className="crypto-action-btn-label">Buy</span>
+                          </button>
+                        </div>
+                        <div className="crypto-stats-grid mt-4 mt-lg-0">
+                          {[
+                            { label: 'Total Profit', value: `$${totalTradingProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, icon: 'fa-chart-line' },
+                            { label: 'Open Trades', value: userTrades.open_trades?.length || 0, icon: 'fa-clock', onClick: () => setActiveTab('trades') },
+                            { label: 'Closed Trades', value: userTrades.closed_trades?.length || 0, icon: 'fa-check-circle', onClick: () => setActiveTab('history') },
+                            { label: 'Institutional Tier', value: 'Level 4 Plus', icon: 'fa-shield-alt' }
+                          ].map((stat, i) => (
+                            <div key={i} className="crypto-stat-card" onClick={stat.onClick} style={stat.onClick ? { cursor: 'pointer' } : {}}>
+                              <div className="crypto-stat-icon-row">
+                                <div className="crypto-stat-icon"><i className={`fas ${stat.icon}`}></i></div>
+                                <span className="crypto-stat-label">{stat.label}</span>
+                              </div>
+                              <div className="crypto-stat-value">{stat.value}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    );
+                  })()}
                 </>
+              )}
+
+              {activeTab === 'trades' && (
+                <div className="animate__animated animate__fadeIn">
+                  <div className="d-flex justify-content-between align-items-center mb-4">
+                    <h5 className="fw-bold mb-0 text-dark">Active Trades</h5>
+                    <span className="badge bg-primary rounded-pill px-3 py-2">{userTrades.open_trades?.length || 0} Open</span>
+                  </div>
+
+                  {(!userTrades.open_trades || userTrades.open_trades.length === 0) ? (
+                    <div className="text-center py-5 bg-white rounded-4 border shadow-sm">
+                      <div className="mb-3">
+                        <div className="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto" style={{ width: '60px', height: '60px' }}>
+                          <i className="fas fa-chart-line text-muted fs-3"></i>
+                        </div>
+                      </div>
+                      <h6 className="fw-bold text-dark">No Active Trades</h6>
+                      <p className="text-muted small">Your open market positions will appear here.</p>
+                    </div>
+                  ) : (
+                    <div className="row g-3">
+                      {userTrades.open_trades.map(trade => (
+                        <div key={trade.id} className="col-12 col-md-6 col-lg-4">
+                          <div className="bg-white rounded-4 p-4 border shadow-sm position-relative overflow-hidden h-100">
+                            <div className="position-absolute top-0 end-0 p-3">
+                              <span className={`badge ${trade.direction === 'BUY' ? 'bg-success' : 'bg-danger'} bg-opacity-10 ${trade.direction === 'BUY' ? 'text-success' : 'text-danger'} rounded-pill fw-bold`}>
+                                {trade.direction}
+                              </span>
+                            </div>
+                            <div className="d-flex align-items-center mb-3">
+                              <div className="rounded-circle bg-light d-flex align-items-center justify-content-center me-3" style={{ width: '40px', height: '40px' }}>
+                                <i className={`fab fa-${trade.asset_pair?.split('/')[0]?.toLowerCase() === 'btc' ? 'bitcoin' : trade.asset_pair?.split('/')[0]?.toLowerCase() === 'eth' ? 'ethereum' : 'ethereum'} fs-5 text-primary`}></i>
+                              </div>
+                              <div>
+                                <h6 className="fw-bold mb-0 text-dark">{trade.asset_pair}</h6>
+                                <div className="text-muted" style={{ fontSize: '0.75rem' }}>{trade.strategy || 'Standard'} • {trade.leverage}x</div>
+                              </div>
+                            </div>
+
+                            <div className="row g-2 mb-3">
+                              <div className="col-6">
+                                <div className="p-2 bg-light rounded-3">
+                                  <div className="text-muted" style={{ fontSize: '0.7rem', textTransform: 'uppercase' }}>Amount</div>
+                                  <div className="fw-bold text-dark" style={{ fontSize: '0.85rem' }}>${trade.amount_usd.toLocaleString()}</div>
+                                </div>
+                              </div>
+                              <div className="col-6">
+                                <div className="p-2 bg-light rounded-3">
+                                  <div className="text-muted" style={{ fontSize: '0.7rem', textTransform: 'uppercase' }}>Unrealized</div>
+                                  <div className={`fw-bold ${trade.profit_override >= 0 ? 'text-success' : 'text-danger'}`} style={{ fontSize: '0.85rem' }}>
+                                    {trade.profit_override >= 0 ? '+' : ''}${(trade.profit_override || 0).toLocaleString()}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="d-flex justify-content-between align-items-center border-top pt-3 mt-auto">
+                              <div className="text-muted" style={{ fontSize: '0.7rem' }}>
+                                <i className="far fa-clock me-1"></i> Expires: {new Date(trade.expires_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </div>
+                              <div className="d-flex align-items-center">
+                                <div className="spinner-grow text-success spinner-grow-sm me-2" role="status" style={{ width: '0.5rem', height: '0.5rem' }}></div>
+                                <span className="fw-bold text-success" style={{ fontSize: '0.75rem' }}>LIVE</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'history' && (
+                <div className="animate__animated animate__fadeIn">
+                  <div className="d-flex justify-content-between align-items-center mb-4">
+                    <h5 className="fw-bold mb-0 text-dark">Trading History</h5>
+                    <span className="badge bg-secondary rounded-pill px-3 py-2">{userTrades.closed_trades?.length || 0} Records</span>
+                  </div>
+
+                  {(!userTrades.closed_trades || userTrades.closed_trades.length === 0) ? (
+                    <div className="text-center py-5 bg-white rounded-4 border shadow-sm">
+                      <div className="mb-3">
+                        <div className="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto" style={{ width: '60px', height: '60px' }}>
+                          <i className="fas fa-history text-muted fs-3"></i>
+                        </div>
+                      </div>
+                      <h6 className="fw-bold text-dark">No Trading History</h6>
+                      <p className="text-muted small">Your settled trades will appear here.</p>
+                    </div>
+                  ) : (
+                    <div className="bg-white rounded-4 border shadow-sm overflow-hidden">
+                      <div className="table-responsive">
+                        <table className="table table-hover align-middle mb-0">
+                          <thead className="bg-light">
+                            <tr>
+                              <th className="text-muted text-uppercase fw-bold border-0 py-3 ps-4" style={{ fontSize: '0.75rem', letterSpacing: '0.5px' }}>Asset/Strategy</th>
+                              <th className="text-muted text-uppercase fw-bold border-0 py-3" style={{ fontSize: '0.75rem', letterSpacing: '0.5px' }}>Type</th>
+                              <th className="text-muted text-uppercase fw-bold border-0 py-3" style={{ fontSize: '0.75rem', letterSpacing: '0.5px' }}>Amount</th>
+                              <th className="text-muted text-uppercase fw-bold border-0 py-3" style={{ fontSize: '0.75rem', letterSpacing: '0.5px' }}>P/L</th>
+                              <th className="text-muted text-uppercase fw-bold border-0 py-3 text-end pe-4" style={{ fontSize: '0.75rem', letterSpacing: '0.5px' }}>Date Settled</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {userTrades.closed_trades.map(trade => (
+                              <tr key={trade.id}>
+                                <td className="py-3 ps-4">
+                                  <div className="d-flex align-items-center">
+                                    <div className="rounded-circle bg-light d-flex align-items-center justify-content-center me-3" style={{ width: '36px', height: '36px' }}>
+                                      <i className={`fab fa-${trade.asset_pair?.split('/')[0]?.toLowerCase() === 'btc' ? 'bitcoin' : 'ethereum'} text-dark`}></i>
+                                    </div>
+                                    <div>
+                                      <div className="fw-bold text-dark" style={{ fontSize: '0.9rem' }}>{trade.asset_pair}</div>
+                                      <div className="text-muted" style={{ fontSize: '0.75rem' }}>{trade.strategy}</div>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="py-3">
+                                  <span className={`badge ${trade.direction === 'BUY' ? 'bg-success' : 'bg-danger'} bg-opacity-10 ${trade.direction === 'BUY' ? 'text-success' : 'text-danger'} fw-bold`}>
+                                    {trade.direction}
+                                  </span>
+                                </td>
+                                <td className="py-3">
+                                  <div className="fw-bold text-dark" style={{ fontSize: '0.9rem' }}>${trade.amount_usd.toLocaleString()}</div>
+                                </td>
+                                <td className="py-3">
+                                  <div className={`fw-bold ${trade.profit >= 0 ? 'text-success' : 'text-danger'}`} style={{ fontSize: '0.9rem' }}>
+                                    {trade.profit >= 0 ? '+' : ''}${(trade.profit || 0).toLocaleString()}
+                                  </div>
+                                </td>
+                                <td className="py-3 text-end pe-4">
+                                  <div className="text-muted" style={{ fontSize: '0.85rem' }}>
+                                    {new Date(trade.closed_at).toLocaleDateString()}
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -647,16 +853,16 @@ const CryptoHubPage = () => {
       {/* Account Frozen Bottom Popup */}
       {showFrozenPopup && (
         <>
-          <div 
-            className="position-fixed top-0 start-0 w-100 h-100" 
+          <div
+            className="position-fixed top-0 start-0 w-100 h-100"
             style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 3000, backdropFilter: 'blur(4px)' }}
             onClick={() => { setShowFrozenPopup(false); navigate('/dashboard'); }}
           ></div>
-          <div 
-            className="position-fixed bottom-0 start-0 w-100 bg-white shadow-lg p-4 slide-up" 
-            style={{ 
-              zIndex: 3001, 
-              borderTopLeftRadius: '30px', 
+          <div
+            className="position-fixed bottom-0 start-0 w-100 bg-white shadow-lg p-4 slide-up"
+            style={{
+              zIndex: 3001,
+              borderTopLeftRadius: '30px',
               borderTopRightRadius: '30px',
               animation: 'slideUp 0.4s ease-out forwards'
             }}
@@ -684,10 +890,10 @@ const CryptoHubPage = () => {
                   <p className="mb-0 small text-muted">Please contact our customer live service or your account manager for further assistance and to resolve this restriction.</p>
                 </div>
                 <div className="d-grid gap-2">
-                  <button 
-                    className="btn btn-primary py-3 fw-bold rounded-pill" 
+                  <button
+                    className="btn btn-primary py-3 fw-bold rounded-pill"
                     style={{ background: '#002D72', border: 'none' }}
-                    onClick={() => { setShowFrozenPopup(false); if(window.Tawk_API){ window.Tawk_API.showWidget(); window.Tawk_API.maximize(); } }}
+                    onClick={() => { setShowFrozenPopup(false); if (window.Tawk_API) { window.Tawk_API.showWidget(); window.Tawk_API.maximize(); } }}
                   >
                     Contact Live Support
                   </button>
