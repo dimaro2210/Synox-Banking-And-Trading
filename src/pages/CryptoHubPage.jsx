@@ -778,8 +778,8 @@ const CryptoHubPage = () => {
                             <div key={idx} className="col-12 col-md-6">
                               <a href={news.link} target="_blank" rel="noopener noreferrer" className="text-decoration-none">
                                 <div className="bg-white rounded-4 border shadow-sm overflow-hidden h-100 d-flex flex-column" style={{ transition: 'box-shadow 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 .5rem 1rem rgba(0,0,0,.15)'} onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 .125rem .25rem rgba(0,0,0,.075)'}>
-                                  <div style={{ height: '140px', overflow: 'hidden' }}>
-                                    <img src={news.thumbnail} alt="News" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                  <div style={{ height: '140px', overflow: 'hidden', backgroundColor: '#f1f5f9' }}>
+                                    <img src={news.thumbnail || news.enclosure?.link || 'https://images.unsplash.com/photo-1621416894569-0f39ed31d247?w=500&auto=format&fit=crop&q=60'} alt="News" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.onerror = null; e.target.src = 'https://images.unsplash.com/photo-1621416894569-0f39ed31d247?w=500&auto=format&fit=crop&q=60'; }} />
                                   </div>
                                   <div className="p-3 d-flex flex-column flex-grow-1">
                                     <h6 className="fw-bold text-dark mb-2" style={{ fontSize: '0.95rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{news.title}</h6>
