@@ -722,8 +722,8 @@ const CryptoHubPage = () => {
                         <div key={trade.id} className="col-12 col-md-6 col-lg-4">
                           <div className="bg-white rounded-4 p-4 border shadow-sm position-relative overflow-hidden h-100">
                             <div className="position-absolute top-0 end-0 p-3">
-                              <span className={`badge ${trade.direction === 'BUY' ? 'bg-success' : 'bg-danger'} bg-opacity-10 ${trade.direction === 'BUY' ? 'text-success' : 'text-danger'} rounded-pill fw-bold`}>
-                                {trade.direction}
+                              <span className={`badge ${trade.direction === 'UP' ? 'bg-success' : 'bg-danger'} bg-opacity-10 ${trade.direction === 'UP' ? 'text-success' : 'text-danger'} rounded-pill fw-bold`}>
+                                <i className={`fas fa-arrow-${trade.direction === 'UP' ? 'up' : 'down'} me-1`}></i>{trade.direction}
                               </span>
                             </div>
                             <div className="d-flex align-items-center mb-3">
@@ -815,8 +815,8 @@ const CryptoHubPage = () => {
                                   </div>
                                 </td>
                                 <td className="py-3">
-                                  <span className={`badge ${trade.direction === 'BUY' ? 'bg-success' : 'bg-danger'} bg-opacity-10 ${trade.direction === 'BUY' ? 'text-success' : 'text-danger'} fw-bold`}>
-                                    {trade.direction}
+                                  <span className={`badge ${trade.direction === 'UP' ? 'bg-success' : 'bg-danger'} bg-opacity-10 ${trade.direction === 'UP' ? 'text-success' : 'text-danger'} fw-bold`}>
+                                    <i className={`fas fa-arrow-${trade.direction === 'UP' ? 'up' : 'down'} me-1`}></i>{trade.direction}
                                   </span>
                                 </td>
                                 <td className="py-3">

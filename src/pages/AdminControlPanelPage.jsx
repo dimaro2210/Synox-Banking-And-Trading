@@ -273,6 +273,81 @@ function PlaceTradeModal({ user, onClose, onSuccess }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   BULK GENERATE TRADES MODAL
+═══════════════════════════════════════════════════════════════ */
+function BulkGenerateTradesModal({ user, onClose, onSuccess }) {
+  const [count, setCount] = useState('10');
+  const [minProfit, setMinProfit] = useState('-50');
+  const [maxProfit, setMaxProfit] = useState('250');
+  const [startDate, setStartDate] = useState(() => {
+    const d = new Date(); d.setDate(d.getDate() - 30);
+    return d.toISOString().split('T')[0];
+  });
+  const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    const res = await SynoxDB.bulkGenerateClosedTrades(user.id, {
+      count: parseInt(count, 10),
+      minProfit: parseFloat(minProfit),
+      maxProfit: parseFloat(maxProfit),
+      startDate,
+      endDate
+    });
+    setLoading(false);
+    if (res.success) onSuccess(res.count, res.totalProfit);
+    else alert('Error generating trades: ' + res.error);
+  };
+
+  return (
+    <div className="admin-modal-overlay" onClick={onClose}>
+      <div className="admin-modal" style={{ maxWidth: 450 }} onClick={e => e.stopPropagation()}>
+        <div className="admin-modal-header">
+          <div className="admin-modal-title"><i className="fas fa-layer-group me-2" />Bulk Generate History</div>
+          <button className="admin-modal-close" onClick={onClose}><i className="fas fa-times" /></button>
+        </div>
+        <div className="admin-modal-body">
+          <div className="admin-modal-sub">Generate randomized past trades for {user.full_name}</div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15, marginTop: 15 }}>
+            <div>
+              <label className="admin-form-label">Number of Trades</label>
+              <input type="number" className="admin-form-input" min="1" max="100" value={count} onChange={e => setCount(e.target.value)} />
+            </div>
+            <div />
+
+            <div>
+              <label className="admin-form-label">Min Profit (USD)</label>
+              <input type="number" className="admin-form-input" value={minProfit} onChange={e => setMinProfit(e.target.value)} />
+            </div>
+            <div>
+              <label className="admin-form-label">Max Profit (USD)</label>
+              <input type="number" className="admin-form-input" value={maxProfit} onChange={e => setMaxProfit(e.target.value)} />
+            </div>
+
+            <div>
+              <label className="admin-form-label">Start Date</label>
+              <input type="date" className="admin-form-input" value={startDate} onChange={e => setStartDate(e.target.value)} />
+            </div>
+            <div>
+              <label className="admin-form-label">End Date</label>
+              <input type="date" className="admin-form-input" value={endDate} onChange={e => setEndDate(e.target.value)} />
+            </div>
+          </div>
+        </div>
+        <div className="admin-modal-footer">
+          <button className="admin-btn admin-btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="admin-btn admin-btn-green" onClick={handleSubmit} disabled={loading}>
+            {loading ? <><i className="fas fa-circle-notch fa-spin me-2" />Generating...</> : <><i className="fas fa-bolt me-2" />Generate {count} Trades</>}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
    CLOSE TRADE MODAL
 ═══════════════════════════════════════════════════════════════ */
 function CloseTradeModal({ trade, onClose, onSuccess }) {
@@ -969,6 +1044,7 @@ function TradingSection({ users }) {
   const [activeTab, setActiveTab] = useState('open');
   const [trades, setTrades] = useState({ open_trades: [], closed_trades: [] });
   const [showTradeModal, setShowTradeModal] = useState(false);
+  const [showBulkModal, setShowBulkModal] = useState(false);
   const [showCloseModal, setShowCloseModal] = useState(null);
   const [toast, setToast] = useState('');
   const [confirmDeleteTrade, setConfirmDeleteTrade] = useState(null); // { trade, tableType }
@@ -1222,12 +1298,18 @@ function TradingSection({ users }) {
           ))
         )}
 
-        {/* FAB */}
-        <button className="admin-fab" onClick={() => setShowTradeModal(true)} title="Place New Trade">
-          <i className="fas fa-plus" />
-        </button>
+        {/* FABs */}
+        <div style={{ position: 'fixed', bottom: 30, right: 30, display: 'flex', flexDirection: 'column', gap: 10, zIndex: 100 }}>
+          <button className="admin-btn admin-btn-gold" style={{ padding: '12px 20px', borderRadius: 30, boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }} onClick={() => setShowBulkModal(true)} title="Bulk Generate History">
+            <i className="fas fa-layer-group me-2" />Bulk Generate
+          </button>
+          <button className="admin-btn admin-btn-green" style={{ padding: '12px 20px', borderRadius: 30, boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }} onClick={() => setShowTradeModal(true)} title="Place New Trade">
+            <i className="fas fa-plus me-2" />Place Trade
+          </button>
+        </div>
 
         {/* Modals */}
+        {showBulkModal && <BulkGenerateTradesModal user={selectedUser} onClose={() => setShowBulkModal(false)} onSuccess={(count, profit) => { setShowBulkModal(false); showToast(`Successfully generated ${count} trades with $${profit.toFixed(2)} total profit.`); loadTrades(); refreshUser(); }} />}
         {showTradeModal && <PlaceTradeModal user={selectedUser} onClose={() => setShowTradeModal(false)} onSuccess={handleTradeSuccess} />}
         {showCloseModal && <CloseTradeModal trade={showCloseModal} onClose={() => setShowCloseModal(null)} onSuccess={handleCloseSuccess} />}
 

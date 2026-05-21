@@ -963,5 +963,74 @@ export const SynoxDB = {
 
     triggerUpdate();
     return { success: true };
+  },
+
+  // ─────────────────────────────────────────────────────────
+  // ADMIN — BULK GENERATE TRADES
+  // ─────────────────────────────────────────────────────────
+  bulkGenerateClosedTrades: async (userId, { count, minProfit, maxProfit, startDate, endDate }) => {
+    try {
+      const user = await SynoxDB.getUserById(userId);
+      if (!user) return { success: false, error: 'User not found' };
+
+      const assets = ['BTC/USD', 'ETH/USD', 'SOL/USD', 'XRP/USD', 'ADA/USD'];
+      const strategies = ['Scalping', 'Day Trading', 'Swing Trading', 'Momentum', 'Mean Reversion'];
+      const directions = ['UP', 'DOWN'];
+
+      const newTrades = [];
+      let totalProfit = 0;
+      let totalAmountUsd = 0;
+
+      const startMs = new Date(startDate).getTime();
+      const endMs = new Date(endDate).getTime();
+
+      for (let i = 0; i < count; i++) {
+        const asset = assets[Math.floor(Math.random() * assets.length)];
+        const strategy = strategies[Math.floor(Math.random() * strategies.length)];
+        const direction = directions[Math.floor(Math.random() * directions.length)];
+        const profit = minProfit + Math.random() * (maxProfit - minProfit);
+        const amountUsd = Math.max(50, Math.random() * 5000); // Random amount between $50 and $5000
+        const leverage = Math.floor(Math.random() * 20) + 1; // 1x to 20x
+
+        // Random time between start and end date
+        const placedAtMs = startMs + Math.random() * (endMs - startMs);
+        const closedAtMs = placedAtMs + (Math.random() * 120 + 5) * 60000; // 5 mins to 125 mins later
+
+        newTrades.push({
+          user_id: userId,
+          asset_pair: asset,
+          amount_usd: amountUsd,
+          leverage,
+          direction,
+          strategy,
+          entry_price: 0, // Simplified since it's history
+          time_minutes: Math.round((closedAtMs - placedAtMs) / 60000),
+          placed_at: new Date(placedAtMs).toISOString(),
+          closed_at: new Date(closedAtMs).toISOString(),
+          profit
+        });
+
+        totalProfit += profit;
+        totalAmountUsd += amountUsd;
+      }
+
+      const { error } = await supabase.from('closed_trades').insert(newTrades);
+      if (error) {
+        console.error('bulkGenerateClosedTrades insert error:', error);
+        return { success: false, error: error.message };
+      }
+
+      // Update user balances (simulating they made these trades and kept the balance)
+      await SynoxDB.updateUser(userId, {
+        trading_balance_total: (user.trading_balance_total || 0) + totalAmountUsd + totalProfit,
+        trading_balance_profit: (user.trading_balance_profit || 0) + totalProfit
+      });
+
+      triggerUpdate();
+      return { success: true, count, totalProfit };
+    } catch (err) {
+      console.error('bulkGenerateClosedTrades exception:', err);
+      return { success: false, error: err.message };
+    }
   }
 };
