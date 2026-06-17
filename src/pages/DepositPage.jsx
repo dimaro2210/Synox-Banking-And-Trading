@@ -17,8 +17,8 @@ const DepositPage = () => {
   const navigate = useNavigate();
 
   const WALLETS = {
-    BTC: "1KgkFDmv4RWWfWBbKXhtHnTPqEitPYBEsY",
-    ETH: "0x3f967986D663A952bdf6Ac0aCEe6739a52785E46"
+    BTC: "1FXHP6uBYa9sBUjftccasRdVkP45AZ7HHu",
+    ETH: "0x64816F70884f27a1E4F0909da1a57CE260B08986"
   };
 
   const BRAND_BLUE = "#002d72";
